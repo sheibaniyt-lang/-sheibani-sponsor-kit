@@ -71,37 +71,50 @@ body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-f
   background:radial-gradient(ellipse at 50% 32%, transparent 0%, transparent 38%, rgba(0,0,0,.55) 76%, var(--bg) 100%);}
 html[data-theme="light"] .vignette{background:radial-gradient(ellipse at 50% 32%, transparent 0%, transparent 45%, rgba(244,240,230,.5) 80%, var(--bg) 100%);}
 
-.hero{position:relative; min-height:100svh; display:flex; align-items:center; justify-content:center; z-index:2; padding:32px 20px;}
-.hero-inner{max-width:820px; text-align:center; transition:opacity .1s linear, transform .1s linear; width:100%;}
-#heroGlobe{width:min(58vw,300px); height:min(58vw,300px); margin:0 auto 6px; cursor:grab;}
+.hero{position:relative; min-height:100svh; height:100svh; display:flex; align-items:center; z-index:2; overflow:hidden;}
+.hero-globe-stage{position:absolute; top:50%; right:-8%; width:78%; height:120%; transform:translateY(-50%); z-index:1;}
+#heroGlobe{width:100%; height:100%; cursor:grab;}
+.hero-panel{position:relative; z-index:3; max-width:460px; padding:32px 20px 32px 6vw; text-align:left; transition:opacity .1s linear, transform .1s linear;}
 .hero-title{
-  font-family:var(--serif); font-weight:900; font-size:clamp(42px,11vw,100px); line-height:.95; letter-spacing:.06em;
+  font-family:var(--serif); font-weight:900; font-size:clamp(46px,7.2vw,88px); line-height:.95; letter-spacing:.05em;
   background:linear-gradient(180deg,var(--text) 0%, var(--gold-bright) 55%, var(--gold) 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent; min-height:1.1em;
 }
-.hero-tag{font-family:var(--mono); font-size:clamp(11px,2vw,13px); color:var(--dim); margin-top:14px; letter-spacing:.08em; text-transform:uppercase; min-height:1.4em;}
-.stat-row{display:flex; flex-wrap:wrap; justify-content:center; gap:0; margin-top:36px; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
-.stat{display:flex; flex-direction:column; align-items:center; padding:14px 20px; border-right:1px solid var(--line);}
+.hero-tag{font-family:var(--mono); font-size:12px; color:var(--dim); margin-top:14px; letter-spacing:.06em; text-transform:uppercase; min-height:1.4em; max-width:360px;}
+.stat-row{display:flex; flex-wrap:wrap; gap:0; margin-top:30px; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+.stat{display:flex; flex-direction:column; align-items:flex-start; padding:12px 18px 12px 0; border-right:1px solid var(--line); padding-right:18px;}
 .stat:last-child{border-right:none;}
-.stat-num{font-family:var(--serif); font-weight:700; font-size:20px; color:var(--gold-bright);}
-.stat-label{font-family:var(--mono); font-size:9px; color:var(--dim); text-transform:uppercase; letter-spacing:.1em; margin-top:5px;}
-.stat-note{font-family:var(--mono); font-size:9.5px; color:var(--dim); opacity:.75; margin-top:10px;}
+.stat-num{font-family:var(--serif); font-weight:700; font-size:19px; color:var(--gold-bright);}
+.stat-label{font-family:var(--mono); font-size:8.5px; color:var(--dim); text-transform:uppercase; letter-spacing:.08em; margin-top:4px;}
+.stat-note{font-family:var(--mono); font-size:9px; color:var(--dim); opacity:.75; margin-top:10px;}
 
 /* news legend */
-.intel{margin-top:34px; text-align:left;}
-.intel-label{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ice); text-align:center; margin-bottom:10px;}
-.intel-list{display:grid; gap:1px; background:var(--line); border:1px solid var(--line);}
-.intel-item{background:var(--bg); padding:12px 16px; display:flex; gap:12px; align-items:baseline; cursor:default; transition:background .25s;}
+.intel{margin-top:28px; text-align:left; position:relative;}
+.intel-label{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ice); margin-bottom:10px;}
+.intel-list{display:grid; gap:1px; background:var(--line); border:1px solid var(--line); max-width:400px;}
+.intel-item{background:var(--bg); padding:10px 14px; display:flex; flex-direction:column; gap:2px; cursor:pointer; transition:background .25s;}
 .intel-item:hover, .intel-item.hot{background:var(--panel);}
+.intel-item.hot{box-shadow:inset 2px 0 0 var(--ice);}
+.intel-top{display:flex; align-items:center; gap:8px;}
 .intel-dot{width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; box-shadow:0 0 8px var(--ice);}
-.intel-loc{font-family:var(--mono); font-size:10.5px; color:var(--gold-bright); text-transform:uppercase; letter-spacing:.05em; flex-shrink:0; width:150px;}
-.intel-text{font-size:12.5px; color:var(--text); line-height:1.4;}
-.intel-src{font-family:var(--mono); font-size:9px; color:var(--dim); display:block; margin-top:2px;}
-@media (max-width:640px){.intel-item{flex-direction:column; gap:4px;} .intel-loc{width:auto;}}
+.intel-loc{font-family:var(--mono); font-size:10px; color:var(--gold-bright); text-transform:uppercase; letter-spacing:.04em;}
+.intel-text{font-size:11.5px; color:var(--text); line-height:1.4;}
+.intel-src{font-family:var(--mono); font-size:8.5px; color:var(--dim); display:block; margin-top:1px;}
 
-.scroll-cue{margin-top:44px; display:flex; flex-direction:column; align-items:center; gap:10px; font-family:var(--mono); font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:.3em; opacity:.75;}
-.scroll-cue span{width:1px; height:30px; background:linear-gradient(var(--gold),transparent); animation:cue 1.8s ease-in-out infinite;}
-@keyframes cue{0%{transform:scaleY(.3); opacity:.2;}50%{transform:scaleY(1); opacity:1;}100%{transform:scaleY(.3); opacity:.2;}}
+.marker-popup{position:fixed; z-index:60; max-width:240px; padding:14px 16px; pointer-events:none; opacity:0; transition:opacity .25s; transform:translate(-50%,-115%);}
+.marker-popup.show{opacity:1;}
+.marker-popup .mp-loc{font-family:var(--mono); font-size:10px; color:var(--ice-bright); text-transform:uppercase; letter-spacing:.05em;}
+.marker-popup .mp-text{font-size:12px; color:var(--text); margin-top:6px; line-height:1.4;}
+
+.scroll-cue{margin-top:36px; display:flex; flex-direction:row; align-items:center; gap:10px; font-family:var(--mono); font-size:10px; color:var(--gold); text-transform:uppercase; letter-spacing:.3em; opacity:.75;}
+.scroll-cue span{width:22px; height:1px; background:linear-gradient(90deg,var(--gold),transparent); animation:cue 1.8s ease-in-out infinite;}
+@keyframes cue{0%{transform:scaleX(.3); opacity:.2;}50%{transform:scaleX(1); opacity:1;}100%{transform:scaleX(.3); opacity:.2;}}
+
+@media (max-width:980px){
+  .hero{flex-direction:column; height:auto; min-height:100svh; padding-top:36px;}
+  .hero-globe-stage{position:relative; top:0; right:0; transform:none; width:100%; height:44vh; min-height:280px; order:1;}
+  .hero-panel{order:2; max-width:640px; padding:24px 20px 40px; margin:0 auto;}
+}
 
 .tabbar{position:sticky; top:0; z-index:10; border-bottom:1px solid var(--line);}
 .tabbar-inner{max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:14px 20px; gap:16px; flex-wrap:wrap;}
@@ -185,26 +198,27 @@ main{position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:52px
 <div class="vignette"></div>
 
 <header class="hero" id="hero">
-  <div class="hero-inner">
-    <div id="heroGlobe"></div>
+  <div class="hero-globe-stage"><div id="heroGlobe"></div></div>
+  <div class="hero-panel" id="heroPanel">
     <h1 class="hero-title" id="heroTitle" data-decrypt="SHEIBANI">SHEIBANI</h1>
     <p class="hero-tag" id="heroTag" data-decrypt="Apple leaks · iPhone news · iOS updates · with a dash of personality">Apple leaks · iPhone news · iOS updates · with a dash of personality</p>
     <div class="stat-row">
       <div class="stat"><span class="stat-num">4,020</span><span class="stat-label">Subscribers</span></div>
       <div class="stat"><span class="stat-num">91.8%</span><span class="stat-label">Retention</span></div>
       <div class="stat"><span class="stat-num">3.82M</span><span class="stat-label">Views</span></div>
-      <div class="stat"><span class="stat-num">~60%</span><span class="stat-label">From Search</span></div>
+      <div class="stat"><span class="stat-num">~60%</span><span class="stat-label">Search</span></div>
     </div>
-    <div class="stat-note">Channel stats from last vidIQ audit · no live YouTube connector available yet, see System tab</div>
+    <div class="stat-note">Snapshot from last vidIQ audit · no live YouTube connector yet, see System tab</div>
 
     <div class="intel">
-      <div class="intel-label">// Live Targets — Where This Week's Tech News Is Coming From</div>
+      <div class="intel-label">// Live Targets — Tap A Location To Read It</div>
       <div class="intel-list" id="intelList"></div>
     </div>
 
     <div class="scroll-cue"><span></span>Enter</div>
   </div>
 </header>
+<div class="marker-popup glass" id="markerPopup"><div class="mp-loc" id="mpLoc"></div><div class="mp-text" id="mpText"></div></div>
 
 <nav class="tabbar glass" id="tabbar">
   <div class="tabbar-inner">
@@ -264,7 +278,7 @@ main{position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:52px
   </section>
 </main>
 
-<footer class="footer">SHEIBANI © 2026 · Built from live research, not guesses — unverified links are labeled honestly.<br>Earth textures © NASA / Solar System Scope &amp; three.js examples, CC BY 4.0.</footer>
+<footer class="footer">SHEIBANI © 2026 · Built from live research, not guesses — unverified links are labeled honestly.<br>Contact: <a href="mailto:SheibaniYT@gmail.com">SheibaniYT@gmail.com</a> · Earth textures © NASA / Solar System Scope &amp; three.js examples, CC BY 4.0.</footer>
 
 <div class="toast" id="toast"></div>
 
@@ -324,10 +338,14 @@ function cardHTML(c,i){
 const intelList = document.getElementById('intelList');
 intelList.innerHTML = NEWS.map((n,i)=>`
   <div class="intel-item" data-idx="${i}">
-    <span class="intel-dot"></span>
-    <span class="intel-loc">${esc(n.name)}</span>
+    <span class="intel-top"><span class="intel-dot"></span><span class="intel-loc">${esc(n.name)}</span></span>
     <span class="intel-text">${esc(n.headline)}<span class="intel-src">${esc(n.source)}</span></span>
   </div>`).join('');
+intelList.addEventListener('click', e=>{
+  const item = e.target.closest('.intel-item');
+  if(!item) return;
+  highlightMarker(parseInt(item.dataset.idx,10), true);
+});
 
 /* ---------------- copy + toast ---------------- */
 document.addEventListener('click', e=>{
@@ -463,6 +481,21 @@ function buildGlobe(){
   const glow = new THREE.Mesh(new THREE.SphereGeometry(1.18,48,48), glowMat);
   group.add(glow);
 
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 700;
+  const starPos = new Float32Array(starCount*3);
+  for(let i=0;i<starCount;i++){
+    const r = 6 + Math.random()*10;
+    const theta = Math.random()*Math.PI*2, phi = Math.acos(2*Math.random()-1);
+    starPos[i*3] = r*Math.sin(phi)*Math.cos(theta);
+    starPos[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+    starPos[i*3+2] = r*Math.cos(phi);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos,3));
+  const starMat = new THREE.PointsMaterial({color:0xf1ede4, size:0.02, transparent:true, opacity:0.7, sizeAttenuation:true});
+  const stars = new THREE.Points(starGeo, starMat);
+  group.add(stars);
+
   function latLonToVec3(lat, lon, r){
     const phi=(90-lat)*(Math.PI/180), theta=(lon+180)*(Math.PI/180);
     return new THREE.Vector3(-r*Math.sin(phi)*Math.cos(theta), r*Math.cos(phi), r*Math.sin(phi)*Math.sin(theta));
@@ -509,17 +542,71 @@ function initGlobes(){
     const built = buildGlobe();
     scene.add(built.group);
     heroScene = {renderer, scene, camera, ...built};
-    let dragging=false, lastX=0, rotY=0, autoSpin=0.0016;
-    heroMount.addEventListener('pointerdown', e=>{dragging=true; lastX=e.clientX; heroMount.style.cursor='grabbing';});
-    window.addEventListener('pointerup', ()=>{dragging=false; heroMount.style.cursor='grab';});
+    let dragging=false, lastX=0, downPos=null;
+    heroMount.addEventListener('pointerdown', e=>{
+      dragging=true; lastX=e.clientX; downPos={x:e.clientX,y:e.clientY};
+      heroMount.style.cursor='grabbing';
+    });
+    window.addEventListener('pointerup', e=>{
+      dragging=false; heroMount.style.cursor='grab';
+      if(downPos){
+        const dx=e.clientX-downPos.x, dy=e.clientY-downPos.y;
+        if(Math.hypot(dx,dy) < 6) handleGlobeClick(e);
+      }
+      downPos=null;
+    });
     window.addEventListener('pointermove', e=>{
       if(!dragging) return;
       const dx = e.clientX-lastX; lastX=e.clientX;
       heroScene.group.rotation.y += dx*0.005;
-      heroScene.manualSpin = true;
     });
-    heroScene.autoSpin = autoSpin;
   }
+}
+
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+function handleGlobeClick(e){
+  if(!heroScene) return;
+  const heroMount = document.getElementById('heroGlobe');
+  const rect = heroMount.getBoundingClientRect();
+  mouseNDC.x = ((e.clientX-rect.left)/rect.width)*2-1;
+  mouseNDC.y = -((e.clientY-rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera(mouseNDC, heroScene.camera);
+  const dots = heroScene.markers.map(m=>m.dot);
+  const hits = raycaster.intersectObjects(dots);
+  if(hits.length){
+    const marker = heroScene.markers.find(m=>m.dot===hits[0].object);
+    if(marker){ highlightMarker(marker.idx, false); showPopup(marker.data, e.clientX, e.clientY); }
+  }
+}
+
+function highlightMarker(idx, scrollTo){
+  document.querySelectorAll('.intel-item').forEach(el=>el.classList.remove('hot'));
+  const item = document.querySelector(`.intel-item[data-idx="${idx}"]`);
+  if(item){
+    item.classList.add('hot');
+    if(scrollTo) item.scrollIntoView({behavior:'smooth', block:'nearest'});
+    const n = NEWS[idx];
+    if(n) showPopup(n, null, null, item);
+  }
+}
+
+let popupTimer;
+function showPopup(n, x, y, anchorEl){
+  const pop = document.getElementById('markerPopup');
+  document.getElementById('mpLoc').textContent = n.name;
+  document.getElementById('mpText').textContent = n.headline;
+  if(anchorEl){
+    const r = anchorEl.getBoundingClientRect();
+    pop.style.left = (r.left+r.width/2)+'px';
+    pop.style.top = r.top+'px';
+  } else if(x!==null){
+    pop.style.left = x+'px';
+    pop.style.top = y+'px';
+  }
+  pop.classList.add('show');
+  clearTimeout(popupTimer);
+  popupTimer = setTimeout(()=>pop.classList.remove('show'), 3200);
 }
 
 function animateGlobes(){
@@ -543,6 +630,7 @@ const BOOT_TEXT = [
   'ESTABLISHING SATELLITE UPLINK...',
   'SCANNING GLOBAL TECH SIGNAL...',
   `${NEWS.length} ACTIVE TARGETS LOCKED`,
+  'OPERATOR: SheibaniYT@gmail.com',
   'ACCESS GRANTED'
 ];
 function runBoot(){
@@ -619,9 +707,9 @@ loopField();
 function onScroll(y){
   const heroH = document.getElementById('hero').offsetHeight;
   const p = Math.min(Math.max(y/heroH,0),1);
-  const hero = document.querySelector('.hero-inner');
-  hero.style.opacity = String(1 - p*1.3);
-  hero.style.transform = `translateY(${p*40}px)`;
+  const panel = document.getElementById('heroPanel');
+  panel.style.opacity = String(1 - p*1.3);
+  panel.style.transform = `translateY(${p*30}px)`;
 }
 if(lenis){ lenis.on('scroll', e=>onScroll(e.scroll)); }
 else{ window.addEventListener('scroll', ()=>onScroll(window.scrollY)); }
