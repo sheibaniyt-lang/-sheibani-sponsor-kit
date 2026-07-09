@@ -74,9 +74,9 @@ html[data-theme="light"] .vignette{background:radial-gradient(ellipse at 50% 32%
 .hero{position:relative; min-height:100svh; height:100svh; display:flex; align-items:center; z-index:2; overflow:hidden;}
 .hero-globe-stage{position:absolute; top:50%; right:-4%; width:58%; height:90%; transform:translateY(-50%); z-index:1;}
 #heroGlobe{width:100%; height:100%; cursor:grab;}
-.hero-panel{position:relative; z-index:3; max-width:460px; padding:32px 20px 32px 6vw; text-align:left; transition:opacity .1s linear, transform .1s linear;}
+.hero-panel{position:relative; z-index:3; max-width:520px; padding:32px 24px 32px 6vw; text-align:left; transition:opacity .1s linear, transform .1s linear;}
 .hero-title{
-  font-family:var(--serif); font-weight:900; font-size:clamp(46px,7.2vw,88px); line-height:.95; letter-spacing:.05em;
+  font-family:var(--serif); font-weight:900; font-size:clamp(34px,5.8vw,64px); line-height:1.05; letter-spacing:.03em; overflow-wrap:anywhere;
   background:linear-gradient(180deg,var(--text) 0%, var(--gold-bright) 55%, var(--gold) 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent; min-height:1.1em;
 }
@@ -324,6 +324,11 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
       <div class="status-card">
         <span class="status-label">Last Sync</span>
         <span class="status-value">July 09, 2026</span>
+      </div>
+      <div class="status-card">
+        <span class="status-label">Last Batch — Outreach Drafts</span>
+        <span class="status-value" id="draftsCount">—</span>
+        <span class="status-sub">new Gmail drafts created, snapshot from the daily run — not live</span>
       </div>
       <div class="status-card">
         <span class="status-label">Next Refresh</span>
@@ -606,13 +611,12 @@ function buildGlobe(){
   const dayTex = loader.load(TEX_BASE+'earth_atmos_2048.jpg');
   const nightTex = loader.load(TEX_BASE+'earth_lights_2048.png');
   const cloudsTex = loader.load(TEX_BASE+'earth_clouds_1024.png');
-  const specTex = loader.load(TEX_BASE+'earth_specular_2048.jpg');
 
   const group = new THREE.Group();
 
   const earthMat = new THREE.ShaderMaterial({
     uniforms:{
-      dayTexture:{value:dayTex}, nightTexture:{value:nightTex}, specularTexture:{value:specTex},
+      dayTexture:{value:dayTex}, nightTexture:{value:nightTex},
       sunDirection:{value:computeSunDirection()}
     },
     vertexShader:`
@@ -625,23 +629,29 @@ function buildGlobe(){
       }
     `,
     fragmentShader:`
-      uniform sampler2D dayTexture; uniform sampler2D nightTexture; uniform sampler2D specularTexture; uniform vec3 sunDirection;
+      uniform sampler2D dayTexture; uniform sampler2D nightTexture; uniform vec3 sunDirection;
       varying vec2 vUv; varying vec3 vNormal; varying vec3 vViewPos;
       void main(){
         float intensity = dot(vNormal, sunDirection);
         vec3 dayColor = texture2D(dayTexture, vUv).rgb;
         dayColor = (dayColor - 0.5) * 1.08 + 0.5;
+
+        /* ocean signal derived straight from the day texture itself (blue-dominant pixels) -
+           avoids depending on a separate specular mask file that was never confirmed to load correctly */
+        float oceanish = clamp((dayColor.b - max(dayColor.r, dayColor.g)) * 3.2, 0.0, 1.0);
+        vec3 richOcean = dayColor * vec3(0.82, 0.93, 1.22);
+        dayColor = mix(dayColor, richOcean, oceanish);
+
         vec3 lightsRaw = texture2D(nightTexture, vUv).rgb;
         vec3 liftedLights = pow(clamp(lightsRaw,0.0,1.0), vec3(0.55));
         vec3 nightColor = liftedLights * vec3(1.55, 1.2, 0.72) * 1.5;
         float blend = smoothstep(-0.16, 0.09, intensity);
         vec3 base = mix(nightColor, dayColor, blend);
 
-        float specMask = texture2D(specularTexture, vUv).r;
         vec3 viewDir = normalize(vViewPos);
-        vec3 halfDir = normalize(sunDirection + viewDir);
-        float specAngle = max(dot(vNormal, halfDir), 0.0);
-        float spec = pow(specAngle, 28.0) * specMask * max(blend,0.0) * 0.9;
+        vec3 reflectDir = reflect(-sunDirection, vNormal);
+        float sunGlint = pow(max(dot(reflectDir, viewDir), 0.0), 42.0);
+        float spec = sunGlint * oceanish * max(blend,0.0) * 1.1;
 
         float rim = pow(1.0 - max(dot(vNormal, viewDir), 0.0), 3.2);
         vec3 rimColor = vec3(0.435,0.89,1.0) * rim * (0.32 + blend*0.25);
@@ -881,17 +891,42 @@ function resizeOrbit(){
 resizeOrbit();
 window.addEventListener('resize', resizeOrbit);
 let idleT=0;
-/* ---- 2084 briefing-room backdrop: perspective floor grid + distant monitor glows + slow light sweeps ---- */
+/* ---- Command/briefing-room backdrop: a literal wall of HUD screens (bordered panels with moving
+   internal readouts + scan sweep), a perspective floor grid, and a soft overhead viewport glow ---- */
 const ROOM_MONITORS=[
-  {x:0.12,y:0.22,w:0.14,h:0.09,phase:0},
-  {x:0.86,y:0.16,w:0.11,h:0.07,phase:1.7},
-  {x:0.08,y:0.74,w:0.12,h:0.08,phase:3.1},
-  {x:0.9,y:0.7,w:0.13,h:0.085,phase:4.6},
+  {x:0.09,y:0.15,w:0.15,h:0.1,phase:0},
+  {x:0.29,y:0.09,w:0.11,h:0.075,phase:0.9},
+  {x:0.63,y:0.1,w:0.12,h:0.08,phase:1.8},
+  {x:0.85,y:0.14,w:0.15,h:0.1,phase:2.6},
 ];
+function drawScreen(m){
+  const cx=m.x*W, cy=m.y*H, w=m.w*W, h=m.h*H, x0=cx-w/2, y0=cy-h/2;
+  const pulse=0.55+Math.sin(idleT*0.35+m.phase)*0.45;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(w,h)*1.15);
+  g.addColorStop(0, `rgba(111,227,255,${0.05+pulse*0.05})`);
+  g.addColorStop(1,'rgba(111,227,255,0)');
+  ctx.save(); ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(cx,cy,w*1.15,h*1.15,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha=0.15+pulse*0.06; ctx.fillStyle='#0a1a1f'; ctx.fillRect(x0,y0,w,h);
+  ctx.globalAlpha=0.28+pulse*0.2; ctx.strokeStyle='#6fe3ff'; ctx.lineWidth=1*DPR; ctx.strokeRect(x0,y0,w,h);
+  ctx.globalAlpha=0.15;
+  for(let r=0;r<4;r++){
+    const ry=y0+h*(0.22+r*0.2);
+    const rw=w*(0.3+((r*0.27+idleT*0.3+m.phase)%1)*0.5);
+    ctx.fillStyle = r%2===0 ? '#6fe3ff' : '#c9a959';
+    ctx.fillRect(x0+w*0.08, ry, rw, h*0.06);
+  }
+  const sweepY = y0 + h*((idleT*0.15+m.phase*0.3)%1);
+  const sg=ctx.createLinearGradient(0,sweepY-h*0.1,0,sweepY+h*0.1);
+  sg.addColorStop(0,'rgba(255,255,255,0)'); sg.addColorStop(0.5,'rgba(255,255,255,0.09)'); sg.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=sg; ctx.fillRect(x0,y0,w,h);
+  ctx.restore();
+}
 function drawBriefingRoom(){
   ctx.save();
-  ctx.globalAlpha=0.045; ctx.strokeStyle='#6fe3ff'; ctx.lineWidth=1*DPR;
-  const vx=W*0.5, vy=H*0.4, edges=7;
+  ctx.globalAlpha=0.05; ctx.strokeStyle='#6fe3ff'; ctx.lineWidth=1*DPR;
+  const vx=W*0.5, vy=H*0.38, edges=7;
   for(let i=0;i<=edges;i++){
     const fromX=(i/edges)*W;
     ctx.beginPath(); ctx.moveTo(fromX,H); ctx.lineTo(vx+(vx-fromX)*-0.05, vy); ctx.stroke();
@@ -902,21 +937,17 @@ function drawBriefingRoom(){
   }
   ctx.restore();
 
-  ROOM_MONITORS.forEach(m=>{
-    const pulse=0.5+Math.sin(idleT*0.4+m.phase)*0.5;
-    const cx=m.x*W, cy=m.y*H, rw=m.w*W, rh=m.h*H;
-    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rw,rh));
-    g.addColorStop(0, `rgba(111,227,255,${0.10+pulse*0.07})`);
-    g.addColorStop(1,'rgba(111,227,255,0)');
-    ctx.save(); ctx.fillStyle=g;
-    ctx.beginPath(); ctx.ellipse(cx,cy,rw,rh,0,0,Math.PI*2); ctx.fill(); ctx.restore();
-  });
+  const wg=ctx.createRadialGradient(W*0.5,H*0.05,0,W*0.5,H*0.05,W*0.6);
+  wg.addColorStop(0,'rgba(80,140,180,0.05)'); wg.addColorStop(1,'rgba(80,140,180,0)');
+  ctx.save(); ctx.fillStyle=wg; ctx.fillRect(0,0,W,H*0.5); ctx.restore();
+
+  ROOM_MONITORS.forEach(drawScreen);
 
   for(let i=0;i<2;i++){
     const speed=0.18+i*0.09;
     const y=((idleT*speed*1000+i*400)%(H+200))-100;
     const g=ctx.createLinearGradient(0,y-40,0,y+40);
-    g.addColorStop(0,'rgba(201,169,89,0)'); g.addColorStop(0.5,'rgba(201,169,89,0.035)'); g.addColorStop(1,'rgba(201,169,89,0)');
+    g.addColorStop(0,'rgba(201,169,89,0)'); g.addColorStop(0.5,'rgba(201,169,89,0.03)'); g.addColorStop(1,'rgba(201,169,89,0)');
     ctx.save(); ctx.fillStyle=g; ctx.fillRect(0,y-40,W,80); ctx.restore();
   }
 }
