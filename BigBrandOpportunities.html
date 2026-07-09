@@ -72,7 +72,7 @@ body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-f
 html[data-theme="light"] .vignette{background:radial-gradient(ellipse at 50% 32%, transparent 0%, transparent 45%, rgba(244,240,230,.5) 80%, var(--bg) 100%);}
 
 .hero{position:relative; min-height:100svh; height:100svh; display:flex; align-items:center; z-index:2; overflow:hidden;}
-.hero-globe-stage{position:absolute; top:50%; right:-8%; width:78%; height:120%; transform:translateY(-50%); z-index:1;}
+.hero-globe-stage{position:absolute; top:50%; right:-4%; width:58%; height:90%; transform:translateY(-50%); z-index:1;}
 #heroGlobe{width:100%; height:100%; cursor:grab;}
 .hero-panel{position:relative; z-index:3; max-width:460px; padding:32px 20px 32px 6vw; text-align:left; transition:opacity .1s linear, transform .1s linear;}
 .hero-title{
@@ -112,7 +112,7 @@ html[data-theme="light"] .vignette{background:radial-gradient(ellipse at 50% 32%
 
 @media (max-width:980px){
   .hero{flex-direction:column; height:auto; min-height:100svh; padding-top:36px;}
-  .hero-globe-stage{position:relative; top:0; right:0; transform:none; width:100%; height:44vh; min-height:280px; order:1;}
+  .hero-globe-stage{position:relative; top:0; right:0; transform:none; width:100%; height:33vh; min-height:220px; order:1;}
   .hero-panel{order:2; max-width:640px; padding:24px 20px 40px; margin:0 auto;}
 }
 
@@ -217,6 +217,14 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
 
 .stat-num{text-shadow:0 0 14px rgba(232,205,138,.3);}
 .intel-dot{box-shadow:0 0 10px var(--ice), 0 0 2px var(--ice-bright);}
+
+.live-clock{position:fixed; top:78px; right:16px; z-index:9; padding:10px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--dim); text-align:right; line-height:1.6; pointer-events:none;}
+.live-clock .lc-time{color:var(--gold-bright); font-size:13px; font-weight:700;}
+.live-clock .lc-next{color:var(--ice-bright); margin-top:2px;}
+@media (max-width:640px){
+  .live-clock{top:auto; bottom:14px; right:10px; font-size:9px; padding:8px 10px;}
+  .live-clock .lc-time{font-size:11px;}
+}
 </style>
 </head>
 <body>
@@ -233,12 +241,17 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
 <div class="hud-grid"></div>
 <div id="scanline"></div>
 <div class="hud-frame"><span class="hf-tl"></span><span class="hf-tr"></span><span class="hf-bl"></span><span class="hf-br"></span></div>
+<div class="live-clock glass" id="liveClock">
+  <div id="lcDate">—</div>
+  <div class="lc-time" id="lcTime">—</div>
+  <div class="lc-next" id="lcNext">NEXT REFRESH —</div>
+</div>
 
 <header class="hero" id="hero">
   <div class="hero-globe-stage"><div id="heroGlobe"></div></div>
   <div class="hero-panel" id="heroPanel">
     <h1 class="hero-title" id="heroTitle" data-decrypt="SHEIBANI">SHEIBANI</h1>
-    <p class="hero-tag" id="heroTag" data-decrypt="Apple leaks · iPhone news · iOS updates · with a dash of personality">Apple leaks · iPhone news · iOS updates · with a dash of personality</p>
+    <p class="hero-tag" id="heroTag" data-decrypt="Apple leaks · iPhone intel · iOS transmissions · with a dash of personality">Apple leaks · iPhone intel · iOS transmissions · with a dash of personality</p>
     <div class="stat-row">
       <div class="stat"><span class="stat-num">4,020</span><span class="stat-label">Subscribers</span></div>
       <div class="stat"><span class="stat-num">91.8%</span><span class="stat-label">Retention</span></div>
@@ -309,7 +322,7 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
     <div class="panel-head"><span class="kicker">V.</span><h2 data-decrypt="System Status">System Status</h2></div>
     <div class="status-grid">
       <div class="status-card">
-        <span class="status-label">Last Refreshed</span>
+        <span class="status-label">Last Sync</span>
         <span class="status-value">July 09, 2026</span>
       </div>
       <div class="status-card">
@@ -319,7 +332,7 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
       </div>
       <div class="status-card wide">
         <span class="status-label">How This Works</span>
-        <p class="status-note">This page rebuilds itself automatically every morning at 9:00&nbsp;AM, on Anthropic's servers — not on your Mac or iPhone. It runs whether or not any app, browser tab, or Claude conversation is open on your end.</p>
+        <p class="status-note">This page recompiles automatically every cycle at 0900, running on Anthropic's servers — not on your Mac or iPhone. Runs whether or not any app, browser tab, or Claude conversation stays open on your end.</p>
       </div>
       <div class="status-card wide">
         <span class="status-label">Install As An App</span>
@@ -511,11 +524,18 @@ function updateCountdown(){
   const cdEl = document.getElementById('nextRefreshCountdown');
   if(timeEl) timeEl.textContent = next.toLocaleString(undefined,{weekday:'short', hour:'numeric', minute:'2-digit'});
   const diff = next-now;
-  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
-  if(cdEl) cdEl.textContent = `in ${h}h ${m}m`;
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+  if(cdEl) cdEl.textContent = `in ${h}h ${m}m ${s}s`;
+
+  const lcDate = document.getElementById('lcDate');
+  const lcTime = document.getElementById('lcTime');
+  const lcNext = document.getElementById('lcNext');
+  if(lcDate) lcDate.textContent = now.toLocaleDateString(undefined,{month:'short', day:'2-digit', year:'numeric'}).toUpperCase();
+  if(lcTime) lcTime.textContent = now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  if(lcNext) lcNext.textContent = `NEXT REFRESH ${h}h ${m}m ${s}s`;
 }
 updateCountdown();
-setInterval(updateCountdown, 30000);
+setInterval(updateCountdown, 1000);
 setInterval(()=>{
   const dir = computeSunDirection();
   [bootScene, heroScene].forEach(s=>{ if(s && s.earth) s.earth.material.uniforms.sunDirection.value.copy(dir); });
@@ -612,8 +632,9 @@ function buildGlobe(){
         vec3 dayColor = texture2D(dayTexture, vUv).rgb;
         dayColor = (dayColor - 0.5) * 1.08 + 0.5;
         vec3 lightsRaw = texture2D(nightTexture, vUv).rgb;
-        vec3 nightColor = lightsRaw * vec3(1.65, 1.3, 0.85) * 1.35;
-        float blend = smoothstep(-0.14, 0.12, intensity);
+        vec3 liftedLights = pow(clamp(lightsRaw,0.0,1.0), vec3(0.55));
+        vec3 nightColor = liftedLights * vec3(1.55, 1.2, 0.72) * 1.5;
+        float blend = smoothstep(-0.16, 0.09, intensity);
         vec3 base = mix(nightColor, dayColor, blend);
 
         float specMask = texture2D(specularTexture, vUv).r;
@@ -860,8 +881,48 @@ function resizeOrbit(){
 resizeOrbit();
 window.addEventListener('resize', resizeOrbit);
 let idleT=0;
+/* ---- 2084 briefing-room backdrop: perspective floor grid + distant monitor glows + slow light sweeps ---- */
+const ROOM_MONITORS=[
+  {x:0.12,y:0.22,w:0.14,h:0.09,phase:0},
+  {x:0.86,y:0.16,w:0.11,h:0.07,phase:1.7},
+  {x:0.08,y:0.74,w:0.12,h:0.08,phase:3.1},
+  {x:0.9,y:0.7,w:0.13,h:0.085,phase:4.6},
+];
+function drawBriefingRoom(){
+  ctx.save();
+  ctx.globalAlpha=0.045; ctx.strokeStyle='#6fe3ff'; ctx.lineWidth=1*DPR;
+  const vx=W*0.5, vy=H*0.4, edges=7;
+  for(let i=0;i<=edges;i++){
+    const fromX=(i/edges)*W;
+    ctx.beginPath(); ctx.moveTo(fromX,H); ctx.lineTo(vx+(vx-fromX)*-0.05, vy); ctx.stroke();
+  }
+  for(let i=1;i<4;i++){
+    const t=i/4;
+    ctx.beginPath(); ctx.ellipse(vx,H,W*0.55*(1-t*0.55),H*0.5*(1-t*0.7),0,Math.PI,0,true); ctx.stroke();
+  }
+  ctx.restore();
+
+  ROOM_MONITORS.forEach(m=>{
+    const pulse=0.5+Math.sin(idleT*0.4+m.phase)*0.5;
+    const cx=m.x*W, cy=m.y*H, rw=m.w*W, rh=m.h*H;
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rw,rh));
+    g.addColorStop(0, `rgba(111,227,255,${0.10+pulse*0.07})`);
+    g.addColorStop(1,'rgba(111,227,255,0)');
+    ctx.save(); ctx.fillStyle=g;
+    ctx.beginPath(); ctx.ellipse(cx,cy,rw,rh,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+  });
+
+  for(let i=0;i<2;i++){
+    const speed=0.18+i*0.09;
+    const y=((idleT*speed*1000+i*400)%(H+200))-100;
+    const g=ctx.createLinearGradient(0,y-40,0,y+40);
+    g.addColorStop(0,'rgba(201,169,89,0)'); g.addColorStop(0.5,'rgba(201,169,89,0.035)'); g.addColorStop(1,'rgba(201,169,89,0)');
+    ctx.save(); ctx.fillStyle=g; ctx.fillRect(0,y-40,W,80); ctx.restore();
+  }
+}
 function drawFaintField(){
   ctx.clearRect(0,0,W,H);
+  drawBriefingRoom();
   ctx.save(); ctx.globalAlpha=0.5;
   for(let i=0;i<60;i++){
     const x=(Math.sin(i*12.9898+idleT*0.02)*0.5+0.5)*W;
