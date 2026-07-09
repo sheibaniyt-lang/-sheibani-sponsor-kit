@@ -217,25 +217,6 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
 
 .stat-num{text-shadow:0 0 14px rgba(232,205,138,.3);}
 .intel-dot{box-shadow:0 0 10px var(--ice), 0 0 2px var(--ice-bright);}
-
-/* ---------------- Black Ops 2 menu DNA pass ---------------- */
-:root{ --accent2:#ff6a3d; --accent2-bright:#ff8f66; }
-html[data-theme="light"]{ --accent2:#d94f1e; --accent2-bright:#b83e14; }
-
-.copy-btn, .mark-btn, .theme-toggle, .boot-skip{
-  clip-path:polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-.badge{ clip-path:polygon(7px 0, 100% 0, 100% 100%, 0 100%, 0 7px); }
-.status-card, .marker-popup, .boot-bar{
-  clip-path:polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
-}
-.tab-btn.active::after{ background:linear-gradient(90deg,var(--gold),var(--accent2)); box-shadow:0 0 12px var(--accent2); }
-.tab-btn.active{ text-shadow:0 0 10px rgba(255,106,61,.25); }
-@keyframes selectFlash{0%{box-shadow:inset 0 0 0 1px rgba(255,106,61,.55), 0 0 22px rgba(255,106,61,.14);} 100%{box-shadow:inset 0 0 0 1px rgba(255,106,61,.18), 0 0 8px rgba(255,106,61,.04);}}
-.card:hover{ animation:selectFlash .45s ease-out; }
-.copy-btn:hover, .mark-btn:hover{ box-shadow:0 0 16px rgba(255,106,61,.2); border-color:var(--accent2); }
-.hud-frame span{ border-color:var(--accent2); }
-#scanline::before{ background:linear-gradient(180deg, transparent, rgba(255,106,61,.04) 40%, rgba(111,227,255,.11) 50%, rgba(255,106,61,.04) 60%, transparent); }
 </style>
 </head>
 <body>
