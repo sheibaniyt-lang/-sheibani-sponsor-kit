@@ -25,16 +25,24 @@
   color-scheme: dark;
 }
 html[data-theme="light"]{
-  --bg:#f4f0e6; --panel:#ffffff; --line:rgba(154,120,45,.28); --line-bright:rgba(154,120,45,.55);
-  --gold:#9a782d; --gold-bright:#7a5e20; --ice:#0891b2; --ice-bright:#0e7490;
-  --text:#241f16; --dim:#6b6252; --good:#1a7a3a; --warn:#8a6a12;
-  --glass-bg:rgba(255,255,255,.55); --glass-border:rgba(20,15,5,.10); --glass-sheen:rgba(255,255,255,.55);
+  --bg:#f4f0e6; --panel:#ffffff; --line:rgba(120,90,32,.48); --line-bright:rgba(120,90,32,.72);
+  --gold:#8a6a26; --gold-bright:#6b5118; --ice:#0891b2; --ice-bright:#0e7490;
+  --text:#241f16; --dim:#544c3d; --good:#1a7a3a; --warn:#8a6a12;
+  --glass-bg:rgba(255,255,255,.62); --glass-border:rgba(30,22,8,.26); --glass-sheen:rgba(255,255,255,.55);
   color-scheme: light;
 }
+/* Light mode needs meaningfully stronger outline/border weight than dark mode to read as
+   defined edges against a bright background — the dark-mode opacity values were too faint
+   here, leaving cards/panels/dividers without a clear boundary. */
+html[data-theme="light"] .corner{opacity:.7;}
+html[data-theme="light"] .card:hover .corner{opacity:1;}
+html[data-theme="light"] .hud-frame span{opacity:.4;}
+html[data-theme="light"] .hud-grid{opacity:.07;}
 *{box-sizing:border-box; margin:0; padding:0;}
 html{background:var(--bg);}
 body{background:var(--bg); color:var(--text); font-family:var(--body); -webkit-font-smoothing:antialiased; overflow-x:hidden; transition:background .6s ease, color .6s ease;}
 ::selection{background:var(--gold); color:var(--bg);}
+body.no-select, body.no-select *{user-select:none !important; -webkit-user-select:none !important;}
 
 /* ---------------- Liquid Glass panel primitive ---------------- */
 .glass{
@@ -721,9 +729,11 @@ function updateClockDefaultTop(){
 
 clockEl.addEventListener('pointerdown', e=>{
   if(e.target===clockGrip || clockGrip.contains(e.target)) return;
+  e.preventDefault();
   clockPin();
   clockDragging = true;
   clockEl.classList.add('dragging');
+  document.body.classList.add('no-select');
   clockEl.setPointerCapture(e.pointerId);
   clockDragStartX = e.clientX; clockDragStartY = e.clientY;
   const r = clockEl.getBoundingClientRect();
@@ -742,6 +752,7 @@ function clockEndDrag(){
   if(!clockDragging) return;
   clockDragging = false;
   clockEl.classList.remove('dragging');
+  document.body.classList.remove('no-select');
   clockSaveState();
 }
 clockEl.addEventListener('pointerup', clockEndDrag);
@@ -758,8 +769,10 @@ clockEl.addEventListener('dblclick', e=>{
 
 clockGrip.addEventListener('pointerdown', e=>{
   e.stopPropagation();
+  e.preventDefault();
   clockPin();
   clockResizing = true;
+  document.body.classList.add('no-select');
   clockGrip.setPointerCapture(e.pointerId);
   clockResizeStartY = e.clientY;
   clockStartScale = clockScale;
@@ -773,6 +786,7 @@ clockGrip.addEventListener('pointermove', e=>{
 function clockEndResize(){
   if(!clockResizing) return;
   clockResizing = false;
+  document.body.classList.remove('no-select');
   clockSaveState();
 }
 clockGrip.addEventListener('pointerup', clockEndResize);
