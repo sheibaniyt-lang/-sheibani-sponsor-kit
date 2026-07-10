@@ -176,6 +176,25 @@ main{position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:52px
 .status-sub{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:6px;}
 .status-note{font-size:14px; line-height:1.65; color:var(--text); opacity:.85; margin-top:12px; max-width:640px;}
 
+.sub-tabs{display:flex; gap:8px; margin:-8px 0 28px;}
+.sub-tab-btn{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); background:transparent; border:1px solid var(--line); padding:7px 16px; cursor:pointer; transition:color .25s, border-color .25s;}
+.sub-tab-btn:hover{color:var(--text); border-color:var(--gold);}
+.sub-tab-btn.active{color:var(--gold-bright); border-color:var(--gold); box-shadow:0 0 10px rgba(111,227,255,.15) inset;}
+.sub-panel{display:none;}
+.sub-panel.active{display:block; animation:panelIn .4s ease both;}
+
+.mail-list{border-top:1px solid var(--line);}
+.mail-item{display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:16px 4px; border-bottom:1px solid var(--line);}
+.mail-item-main{min-width:0;}
+.mail-item .mi-name{font-family:var(--serif); font-weight:700; font-size:15px;}
+.mail-item .mi-sub{font-size:12.5px; color:var(--dim); margin-top:3px;}
+.mail-item .mi-meta{font-family:var(--mono); font-size:10px; color:var(--dim); text-transform:uppercase; letter-spacing:.04em; margin-top:5px;}
+.mail-item .mi-note{font-size:12px; color:var(--text); opacity:.8; margin-top:6px; max-width:480px;}
+.reply-badge{font-family:var(--mono); font-size:9.5px; padding:4px 9px; letter-spacing:.05em; text-transform:uppercase; white-space:nowrap; border:1px solid; flex-shrink:0;}
+.reply-badge.awaiting{color:var(--dim); border-color:var(--line);}
+.reply-badge.replied{color:var(--good); border-color:var(--good);}
+.reply-badge.declined{color:var(--warn); border-color:var(--warn); opacity:.85;}
+
 .footer{position:relative; z-index:2; text-align:center; color:var(--dim); font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; padding:50px 20px 70px; line-height:1.8;}
 .footer a{color:var(--dim);}
 
@@ -220,11 +239,16 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
 html[data-theme="light"] .stat-num, html[data-theme="light"] .contact-email{text-shadow:none;}
 html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
 
-.live-clock{position:fixed; top:78px; right:16px; z-index:9; padding:10px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--dim); text-align:right; line-height:1.6; pointer-events:none;}
+.live-clock{position:fixed; top:78px; right:16px; z-index:20; padding:10px 16px 13px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--dim); text-align:right; line-height:1.6; cursor:grab; touch-action:none; user-select:none; transition:box-shadow .25s;}
+.live-clock:active{cursor:grabbing;}
+.live-clock.dragging{transition:none; box-shadow:0 10px 32px rgba(0,0,0,.4); cursor:grabbing;}
 .live-clock .lc-time{color:var(--gold-bright); font-size:13px; font-weight:700;}
 .live-clock .lc-next{color:var(--ice-bright); margin-top:2px;}
+.lc-grip{position:absolute; right:2px; bottom:2px; width:15px; height:15px; color:var(--gold); opacity:.4; cursor:nwse-resize; transition:opacity .2s;}
+.lc-grip:hover{opacity:.9;}
+.lc-grip svg{width:100%; height:100%; display:block;}
 @media (max-width:640px){
-  .live-clock{top:auto; bottom:14px; right:10px; font-size:9px; padding:8px 10px;}
+  .live-clock{top:auto; bottom:14px; right:10px; font-size:9px; padding:8px 16px 11px 10px;}
   .live-clock .lc-time{font-size:11px;}
 }
 </style>
@@ -243,10 +267,11 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
 <div class="hud-grid"></div>
 <div id="scanline"></div>
 <div class="hud-frame"><span class="hf-tl"></span><span class="hf-tr"></span><span class="hf-bl"></span><span class="hf-br"></span></div>
-<div class="live-clock glass" id="liveClock">
+<div class="live-clock glass" id="liveClock" title="Drag to move · drag the corner to resize · double-click to reset">
   <div id="lcDate">—</div>
   <div class="lc-time" id="lcTime">—</div>
   <div class="lc-next" id="lcNext">NEXT REFRESH —</div>
+  <div class="lc-grip" id="lcGrip" aria-hidden="true"><svg viewBox="0 0 14 14"><path d="M12 2 L2 12 M12 6.2 L6.2 12 M12 10.4 L10.4 12" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg></div>
 </div>
 
 <header class="hero" id="hero">
@@ -282,6 +307,7 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
       <button class="tab-btn active" data-tab="ai">AI Tools</button>
       <button class="tab-btn" data-tab="eco">Ecosystem</button>
       <button class="tab-btn" data-tab="applied">Applied</button>
+      <button class="tab-btn" data-tab="outreach">Outreach</button>
       <button class="tab-btn" data-tab="contact">Contact</button>
       <button class="tab-btn" data-tab="status">System</button>
       <button class="theme-toggle" id="themeToggle">☾ / ☀</button>
@@ -305,8 +331,45 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
     <div class="grid" id="grid-Applied"></div>
   </section>
 
+  <section class="panel" data-panel="outreach" id="panel-outreach">
+    <div class="panel-head"><span class="kicker">IV.</span><h2 data-decrypt="Outreach">Outreach</h2></div>
+    <div class="sub-tabs">
+      <button class="sub-tab-btn active" data-sub="drafts">Drafts</button>
+      <button class="sub-tab-btn" data-sub="replies">Replies</button>
+    </div>
+    <div class="sub-panel active" data-sub-panel="drafts">
+      <div class="status-grid" style="margin-bottom:32px;">
+        <div class="status-card">
+          <span class="status-label">Pending Drafts</span>
+          <span class="status-value" id="outreachDraftsCount">—</span>
+          <span class="status-sub">sitting in Gmail right now, not yet sent</span>
+        </div>
+        <div class="status-card">
+          <span class="status-label">Total Sent</span>
+          <span class="status-value" id="outreachSentCount">—</span>
+          <span class="status-sub">real outreach emails sent so far</span>
+        </div>
+        <div class="status-card wide">
+          <span class="status-label">How This Works</span>
+          <p class="status-note">Every morning at 0900 the automation researches new sponsor leads and drafts real Gmail outreach for anyone with a direct email on file. This is a synced snapshot of that activity, not a live inbox feed — see System tab.</p>
+        </div>
+      </div>
+      <div class="mail-list" id="outreachDraftsList"></div>
+    </div>
+    <div class="sub-panel" data-sub-panel="replies">
+      <div class="status-grid" style="margin-bottom:32px;">
+        <div class="status-card wide">
+          <span class="status-label">Reply Rate</span>
+          <span class="status-value" id="replyRate">—</span>
+          <span class="status-sub" id="replyRateSub">—</span>
+        </div>
+      </div>
+      <div class="mail-list" id="outreachReplyList"></div>
+    </div>
+  </section>
+
   <section class="panel" data-panel="contact" id="panel-contact">
-    <div class="panel-head"><span class="kicker">IV.</span><h2 data-decrypt="Contact">Contact</h2></div>
+    <div class="panel-head"><span class="kicker">V.</span><h2 data-decrypt="Contact">Contact</h2></div>
     <article class="card contact-card">
       <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
       <div class="card-cat">Sponsorship &amp; collab inquiries</div>
@@ -321,7 +384,7 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
   </section>
 
   <section class="panel" data-panel="status" id="panel-status">
-    <div class="panel-head"><span class="kicker">V.</span><h2 data-decrypt="System Status">System Status</h2></div>
+    <div class="panel-head"><span class="kicker">VI.</span><h2 data-decrypt="System Status">System Status</h2></div>
     <div class="status-grid">
       <div class="status-card">
         <span class="status-label">Last Sync</span>
@@ -370,6 +433,31 @@ const COMPANIES = [{"name":"dbrand","category":"Skins/Cases","why":"Long-running
 /* NEWS_DATA_START */
 const NEWS = [{"name":"Cupertino, CA","lat":37.323,"lon":-122.032,"headline":"iPhone 18 Pro leak: new Dark Cherry finish + A20 Pro chip","source":"9to5Mac / MacRumors, Jul 6 2026"},{"name":"Zhengzhou, China","lat":34.746,"lon":113.625,"headline":"Foxconn assembly hub ramping for foldable iPhone Ultra production","source":"Supply chain reporting, Jul 2026"},{"name":"Hosur, Tamil Nadu, India","lat":12.741,"lon":77.831,"headline":"Tata Electronics breach leaked 630GB of iPhone 18 Pro schematics","source":"Al Jazeera, Jun 30 2026"},{"name":"Suwon, South Korea","lat":37.264,"lon":127.029,"headline":"Samsung enters Apple's camera sensor supply chain for iPhone 18","source":"Sammy Fans, Jul 3 2026"},{"name":"Shenzhen, China","lat":22.543,"lon":114.058,"headline":"Component and contract-manufacturing hub for the wider Apple ecosystem","source":"Ongoing supply chain coverage"}];
 /* NEWS_DATA_END */
+/* OUTREACH_DATA_START */
+const OUTREACH = {
+  "draftsPending": 0,
+  "companies": [
+    {"name": "MOFT", "email": "sales@moft.us", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "Higgsfield", "email": "press@higgsfield.ai", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Higgsfield", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "Sunsama", "email": "kevin@sunsama.com", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Sunsama", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "Aqara", "email": "support@aqara.com", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone Tech YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "Plaud", "email": "creator@plaud.ai", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Plaud", "sentDate": "2026-07-10", "status": "awaiting", "note": "Contacted twice (2026-07-09 and 2026-07-10) — no reply either time"},
+    {"name": "OutlierKit", "email": "hello@outlierkit.com", "subject": "Paid Partnership Inquiry — Sheibani (YouTube Creator, Apple/Tech Niche)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "Anker", "email": "affiliate@anker.com", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "UGREEN", "email": "affiliate@ugreen.com", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "TopView", "email": "affiliate@topview.ai", "subject": "Paid Partnership Inquiry — Sheibani (YouTube Creator, Apple/Tech Niche)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
+    {"name": "MagBak", "email": "info@magbak.com", "subject": "iPhone content creator — MagBak feature for Sheibani", "sentDate": "2026-07-09", "status": "replied", "note": "Sent a signup link for a possible collab: collab.magbak.com"},
+    {"name": "GENTCREATE", "email": "info@gentcreate.com", "subject": "iPhone/Apple content creator — GENTCREATE feature for Sheibani", "sentDate": "2026-07-09", "status": "awaiting", "note": ""},
+    {"name": "Paperlike", "email": "support@paperlike.com", "subject": "iPad/Apple content creator — Paperlike creator collaboration inquiry", "sentDate": "2026-07-09", "status": "replied", "note": "Forwarded to their partnerships team"},
+    {"name": "Moment", "email": "hello@shopmoment.com", "subject": "Mobile filmmaking gear feature — Sheibani (iPhone/Apple creator)", "sentDate": "2026-07-09", "status": "declined", "note": "Overwhelmed with requests right now, can't participate"},
+    {"name": "SANDMARC", "email": "help@sandmarc.com", "subject": "Collab inquiry — iPhone content creator (Sheibani)", "sentDate": "2026-07-09", "status": "awaiting", "note": ""},
+    {"name": "Aulumu", "email": "market@aulumu.com", "subject": "Social media collaboration — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "replied", "note": "Lynn is actively interested — back-and-forth in progress, the strongest lead right now"},
+    {"name": "NEEWER", "email": "PR@neewer.com", "subject": "Paid partnership or product feature — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "awaiting", "note": ""},
+    {"name": "Oakywood", "email": "contact@oakywood.shop", "subject": "Desk setup feature — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "replied", "note": "Asked to fill out a contact form to move forward"}
+  ]
+}
+;
+/* OUTREACH_DATA_END */
 
 function esc(s){return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 
@@ -444,6 +532,64 @@ document.addEventListener('click', e=>{
   showToast(applying ? 'MARKED APPLIED' : 'MOVED BACK TO ACTIVE');
 });
 
+/* ---------------- outreach: drafts + replies ---------------- */
+function statusBadge(status){
+  if(status==='replied') return '<span class="reply-badge replied">Replied</span>';
+  if(status==='declined') return '<span class="reply-badge declined">Declined</span>';
+  return '<span class="reply-badge awaiting">Awaiting</span>';
+}
+function mailItemHTML(c){
+  return `<div class="mail-item">
+    <div class="mail-item-main">
+      <div class="mi-name">${esc(c.name)}</div>
+      <div class="mi-sub">${esc(c.subject||'')}</div>
+      <div class="mi-meta">${esc(c.email)} · sent ${esc(c.sentDate)}</div>
+      ${c.note ? `<div class="mi-note">${esc(c.note)}</div>` : ''}
+    </div>
+    ${statusBadge(c.status)}
+  </div>`;
+}
+function paintOutreach(){
+  const list = (OUTREACH && OUTREACH.companies) || [];
+  const sentTotal = list.length;
+  const repliedTotal = list.filter(c=>c.status==='replied'||c.status==='declined').length;
+
+  const draftsCountEl = document.getElementById('outreachDraftsCount');
+  if(draftsCountEl) draftsCountEl.textContent = (OUTREACH && OUTREACH.draftsPending) || 0;
+  const sentCountEl = document.getElementById('outreachSentCount');
+  if(sentCountEl) sentCountEl.textContent = sentTotal;
+
+  const draftsListEl = document.getElementById('outreachDraftsList');
+  if(draftsListEl){
+    const sorted = list.slice().sort((a,b)=> (b.sentDate||'').localeCompare(a.sentDate||''));
+    draftsListEl.innerHTML = sorted.length ? sorted.map(mailItemHTML).join('') : '<div class="empty-note">No outreach sent yet.</div>';
+  }
+
+  const rateEl = document.getElementById('replyRate');
+  const rateSubEl = document.getElementById('replyRateSub');
+  if(rateEl) rateEl.textContent = sentTotal ? Math.round(repliedTotal/sentTotal*100)+'%' : '—';
+  if(rateSubEl) rateSubEl.textContent = sentTotal ? `${repliedTotal} of ${sentTotal} companies contacted have responded` : 'No outreach sent yet.';
+
+  const replyListEl = document.getElementById('outreachReplyList');
+  if(replyListEl){
+    const rank = {replied:0, declined:1, awaiting:2};
+    const sorted = list.slice().sort((a,b)=> (rank[a.status]-rank[b.status]) || (b.sentDate||'').localeCompare(a.sentDate||''));
+    replyListEl.innerHTML = sorted.length ? sorted.map(mailItemHTML).join('') : '<div class="empty-note">No outreach sent yet.</div>';
+  }
+}
+paintOutreach();
+
+document.querySelectorAll('.sub-tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const group = btn.closest('.sub-tabs');
+    const wrap = group.parentElement;
+    group.querySelectorAll('.sub-tab-btn').forEach(b=>b.classList.remove('active'));
+    wrap.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    wrap.querySelector(`.sub-panel[data-sub-panel="${btn.dataset.sub}"]`).classList.add('active');
+  });
+});
+
 /* ---------------- intel / news legend ---------------- */
 const intelList = document.getElementById('intelList');
 intelList.innerHTML = NEWS.map((n,i)=>`
@@ -513,6 +659,127 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     decryptPanel(name);
   });
 });
+
+/* ---------------- draggable / resizable live-clock HUD ---------------- */
+const clockEl = document.getElementById('liveClock');
+const clockGrip = document.getElementById('lcGrip');
+const CLOCK_STORE_KEY = 'sheibani-clock-widget-v1';
+const CLOCK_MIN_SCALE = 0.7, CLOCK_MAX_SCALE = 1.6;
+let clockPinned = false, clockScale = 1, clockDragging = false, clockResizing = false;
+let clockDragStartX=0, clockDragStartY=0, clockStartLeft=0, clockStartTop=0;
+let clockResizeStartY=0, clockStartScale=1;
+
+function clockApplyScale(s){
+  clockScale = Math.min(CLOCK_MAX_SCALE, Math.max(CLOCK_MIN_SCALE, s));
+  clockEl.style.transform = `scale(${clockScale})`;
+}
+function clockPin(){
+  if(clockPinned) return;
+  const r = clockEl.getBoundingClientRect();
+  clockEl.style.left = r.left+'px';
+  clockEl.style.top = r.top+'px';
+  clockEl.style.right = 'auto';
+  clockEl.style.transformOrigin = 'top left';
+  clockPinned = true;
+}
+function clockClampToViewport(){
+  if(!clockPinned) return;
+  const r = clockEl.getBoundingClientRect();
+  const margin = 6;
+  let left = parseFloat(clockEl.style.left)||r.left, top = parseFloat(clockEl.style.top)||r.top;
+  if(r.left < margin) left += margin - r.left;
+  if(r.top < margin) top += margin - r.top;
+  if(r.right > innerWidth - margin) left -= r.right - (innerWidth - margin);
+  if(r.bottom > innerHeight - margin) top -= r.bottom - (innerHeight - margin);
+  clockEl.style.left = Math.max(margin,left)+'px';
+  clockEl.style.top = Math.max(margin,top)+'px';
+}
+function clockSaveState(){
+  try{
+    localStorage.setItem(CLOCK_STORE_KEY, JSON.stringify({left:clockEl.style.left, top:clockEl.style.top, scale:clockScale}));
+  }catch(e){}
+}
+function clockLoadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(CLOCK_STORE_KEY)||'null');
+    if(s && s.left && s.top){
+      clockEl.style.left = s.left; clockEl.style.top = s.top; clockEl.style.right = 'auto';
+      clockEl.style.transformOrigin = 'top left';
+      clockPinned = true;
+      clockApplyScale(s.scale || 1);
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function updateClockDefaultTop(){
+  if(clockPinned) return;
+  const tb = document.getElementById('tabbar').getBoundingClientRect();
+  const naturalTop = 78;
+  clockEl.style.top = (tb.top <= 1 && tb.bottom > naturalTop) ? (tb.bottom+14)+'px' : naturalTop+'px';
+}
+
+clockEl.addEventListener('pointerdown', e=>{
+  if(e.target===clockGrip || clockGrip.contains(e.target)) return;
+  clockPin();
+  clockDragging = true;
+  clockEl.classList.add('dragging');
+  clockEl.setPointerCapture(e.pointerId);
+  clockDragStartX = e.clientX; clockDragStartY = e.clientY;
+  const r = clockEl.getBoundingClientRect();
+  clockStartLeft = r.left; clockStartTop = r.top;
+});
+clockEl.addEventListener('pointermove', e=>{
+  if(!clockDragging) return;
+  const dx = e.clientX-clockDragStartX, dy = e.clientY-clockDragStartY;
+  const r = clockEl.getBoundingClientRect();
+  const left = Math.min(Math.max(clockStartLeft+dx, 4), innerWidth-r.width-4);
+  const top = Math.min(Math.max(clockStartTop+dy, 4), innerHeight-r.height-4);
+  clockEl.style.left = left+'px';
+  clockEl.style.top = top+'px';
+});
+function clockEndDrag(){
+  if(!clockDragging) return;
+  clockDragging = false;
+  clockEl.classList.remove('dragging');
+  clockSaveState();
+}
+clockEl.addEventListener('pointerup', clockEndDrag);
+clockEl.addEventListener('pointercancel', clockEndDrag);
+clockEl.addEventListener('dblclick', e=>{
+  if(e.target===clockGrip || clockGrip.contains(e.target)) return;
+  try{ localStorage.removeItem(CLOCK_STORE_KEY); }catch(e){}
+  clockPinned = false;
+  clockEl.style.left=''; clockEl.style.top=''; clockEl.style.right=''; clockEl.style.transformOrigin='';
+  clockApplyScale(1);
+  updateClockDefaultTop();
+  showToast('WIDGET RESET');
+});
+
+clockGrip.addEventListener('pointerdown', e=>{
+  e.stopPropagation();
+  clockPin();
+  clockResizing = true;
+  clockGrip.setPointerCapture(e.pointerId);
+  clockResizeStartY = e.clientY;
+  clockStartScale = clockScale;
+});
+clockGrip.addEventListener('pointermove', e=>{
+  if(!clockResizing) return;
+  const dy = e.clientY - clockResizeStartY;
+  clockApplyScale(clockStartScale + dy/110);
+  clockClampToViewport();
+});
+function clockEndResize(){
+  if(!clockResizing) return;
+  clockResizing = false;
+  clockSaveState();
+}
+clockGrip.addEventListener('pointerup', clockEndResize);
+clockGrip.addEventListener('pointercancel', clockEndResize);
+
+if(!clockLoadState()) updateClockDefaultTop();
+window.addEventListener('resize', ()=>{ updateClockDefaultTop(); clockClampToViewport(); });
 
 /* ---------------- status: next refresh countdown ---------------- */
 function updateCountdown(){
@@ -933,6 +1200,19 @@ function highlightMarker(idx, scrollTo){
 }
 
 let popupTimer;
+function clampPopupToViewport(pop, margin){
+  margin = margin || 10;
+  const r = pop.getBoundingClientRect();
+  let dx = 0, dy = 0;
+  if(r.left < margin) dx = margin - r.left;
+  else if(r.right > innerWidth - margin) dx = (innerWidth - margin) - r.right;
+  if(r.top < margin) dy = margin - r.top;
+  else if(r.bottom > innerHeight - margin) dy = (innerHeight - margin) - r.bottom;
+  if(dx || dy){
+    pop.style.left = ((parseFloat(pop.style.left)||0) + dx) + 'px';
+    pop.style.top = ((parseFloat(pop.style.top)||0) + dy) + 'px';
+  }
+}
 function showPopup(n, x, y, anchorEl){
   const pop = document.getElementById('markerPopup');
   document.getElementById('mpLoc').textContent = n.name;
@@ -945,6 +1225,7 @@ function showPopup(n, x, y, anchorEl){
     pop.style.left = x+'px';
     pop.style.top = y+'px';
   }
+  clampPopupToViewport(pop);
   pop.classList.add('show');
   clearTimeout(popupTimer);
   popupTimer = setTimeout(()=>pop.classList.remove('show'), 3200);
@@ -1154,6 +1435,7 @@ function onScroll(y){
   const panel = document.getElementById('heroPanel');
   panel.style.opacity = String(1 - p*1.3);
   panel.style.transform = `translateY(${p*30}px)`;
+  updateClockDefaultTop();
 }
 if(lenis){ lenis.on('scroll', e=>onScroll(e.scroll)); }
 else{ window.addEventListener('scroll', ()=>onScroll(window.scrollY)); }
