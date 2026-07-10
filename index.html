@@ -124,7 +124,7 @@ html[data-theme="light"] .vignette{background:radial-gradient(ellipse at 50% 32%
   .hero-panel{order:2; max-width:640px; padding:24px 20px 40px; margin:0 auto;}
 }
 
-.tabbar{position:sticky; top:0; z-index:10; border-bottom:1px solid var(--line);}
+.tabbar{position:sticky; top:0; z-index:30; border-bottom:1px solid var(--line);}
 .tabbar-inner{max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:14px 20px; gap:16px; flex-wrap:wrap;}
 .tabbar-brand{display:flex; align-items:center; gap:10px; font-family:var(--serif); font-weight:700; letter-spacing:.04em; font-size:15px; color:var(--gold-bright);}
 .tabbar-brand svg{width:22px; height:22px;}
@@ -134,8 +134,13 @@ html[data-theme="light"] .vignette{background:radial-gradient(ellipse at 50% 32%
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--gold-bright);}
 .tab-btn.active::after{content:''; position:absolute; left:14px; right:14px; bottom:0; height:1.5px; background:var(--gold); box-shadow:0 0 10px var(--ice);}
-.theme-toggle{font-family:var(--mono); font-size:10px; color:var(--dim); background:none; border:1px solid var(--line); padding:7px 12px; cursor:pointer; letter-spacing:.06em;}
+.theme-toggle{font-family:var(--mono); font-size:10px; color:var(--dim); background:none; border:1px solid var(--line); padding:7px 12px; cursor:pointer; letter-spacing:.06em; position:relative; z-index:1;}
 .theme-toggle:hover{border-color:var(--gold); color:var(--text);}
+@media (max-width:640px){
+  .tabbar-inner{padding:10px 14px; gap:10px;}
+  .tab-btn{padding:8px 9px; font-size:10px;}
+  .theme-toggle{padding:6px 10px;}
+}
 
 main{position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:52px 20px 20px;}
 .panel{display:none;}
@@ -265,7 +270,7 @@ html[data-theme="light"] #scanline::before{background:linear-gradient(180deg, tr
 html[data-theme="light"] .stat-num, html[data-theme="light"] .contact-email{text-shadow:none;}
 html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
 
-.live-clock{position:fixed; top:78px; right:16px; z-index:20; padding:10px 16px 13px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--dim); text-align:right; line-height:1.6; cursor:grab; touch-action:none; user-select:none; transition:box-shadow .25s;}
+.live-clock{position:fixed; top:78px; right:16px; z-index:15; padding:10px 16px 13px 14px; font-family:var(--mono); font-size:10px; letter-spacing:.05em; color:var(--dim); text-align:right; line-height:1.6; cursor:grab; touch-action:none; user-select:none; transition:box-shadow .25s;}
 .live-clock:active{cursor:grabbing;}
 .live-clock.dragging{transition:none; box-shadow:0 10px 32px rgba(0,0,0,.4); cursor:grabbing;}
 .live-clock .lc-time{color:var(--gold-bright); font-size:13px; font-weight:700;}
@@ -274,8 +279,10 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
 .lc-grip:hover{opacity:.9;}
 .lc-grip svg{width:100%; height:100%; display:block;}
 @media (max-width:640px){
-  .live-clock{top:auto; bottom:14px; right:10px; font-size:9px; padding:8px 16px 11px 10px;}
+  .live-clock{top:auto; bottom:14px; right:10px; max-width:118px; font-size:9px; padding:7px 14px 9px 9px; opacity:.88;}
   .live-clock .lc-time{font-size:11px;}
+  .live-clock .lc-next{display:none;}
+  .live-clock.dragging{opacity:1;}
 }
 </style>
 </head>
@@ -394,6 +401,11 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
       </div>
       <div class="mail-list-heading">Ready To Send</div>
       <div class="mail-list" id="outreachReadyList"></div>
+      <div style="margin:16px 0 28px;">
+        <button class="copy-btn" id="sendDraftsBtn" style="width:auto; min-width:220px; display:inline-block;">Send Pending Drafts</button>
+        <div class="daryl-status" id="sendDraftsStatus" style="margin-top:10px;"></div>
+        <p class="status-note" style="font-size:11.5px; opacity:.65; margin-top:8px; max-width:520px;">Signs in with the SheibaniYT@gmail.com Google account (same sign-in as Daryl's Live Inbox), then sends each pending draft exactly as written — nothing is edited. You'll get one confirmation prompt before anything actually goes out.</p>
+      </div>
       <div class="mail-list-heading" style="margin-top:28px;">Sent History</div>
       <div class="mail-list" id="outreachDraftsList"></div>
     </div>
@@ -519,7 +531,199 @@ const COMPANIES = [{"name": "dbrand", "category": "Skins/Cases", "why": "Long-ru
 const NEWS = [{"name":"Cupertino, CA","lat":37.323,"lon":-122.032,"headline":"iPhone 18 Pro leak: new Dark Cherry finish + A20 Pro chip","source":"9to5Mac / MacRumors, Jul 6 2026"},{"name":"Zhengzhou, China","lat":34.746,"lon":113.625,"headline":"Foxconn assembly hub ramping for foldable iPhone Ultra production","source":"Supply chain reporting, Jul 2026"},{"name":"Hosur, Tamil Nadu, India","lat":12.741,"lon":77.831,"headline":"Tata Electronics breach leaked 630GB of iPhone 18 Pro schematics","source":"Al Jazeera, Jun 30 2026"},{"name":"Suwon, South Korea","lat":37.264,"lon":127.029,"headline":"Samsung enters Apple's camera sensor supply chain for iPhone 18","source":"Sammy Fans, Jul 3 2026"},{"name":"Shenzhen, China","lat":22.543,"lon":114.058,"headline":"Component and contract-manufacturing hub for the wider Apple ecosystem","source":"Ongoing supply chain coverage"}];
 /* NEWS_DATA_END */
 /* OUTREACH_DATA_START */
-const OUTREACH = {"draftsPending": 8, "draftsGoal": 100, "backlogCount": 121, "readyDrafts": [{"name": "Nanoleaf", "email": "affiliate@nanoleaf.me", "category": "HomeKit smart lighting"}, {"name": "Meross", "email": "affiliate@meross.com", "category": "HomeKit smart plug/camera/sensor"}, {"name": "BURGA", "email": "collab@burga.com", "category": "Case"}, {"name": "Ulanzi", "email": "affiliate@ulanzi.com", "category": "Mobile filmmaking gear (tripods/lights/MagSafe mounts)"}, {"name": "PITAKA", "email": "distributor@ipitaka.com", "category": "Aramid-fiber case / MagSafe gear"}, {"name": "Lume Cube", "email": "press@lumecube.com", "category": "Mobile creator lighting"}, {"name": "Onvis", "email": "sales@onvistech.com", "category": "HomeKit/Matter smart home + Find My"}, {"name": "Synthesia", "email": "affiliates@synthesia.io", "category": "AI avatar video"}], "companies": [{"name": "MOFT", "email": "sales@moft.us", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "Higgsfield", "email": "press@higgsfield.ai", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Higgsfield", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "Sunsama", "email": "kevin@sunsama.com", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Sunsama", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "Aqara", "email": "support@aqara.com", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone Tech YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "Plaud", "email": "creator@plaud.ai", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Plaud", "sentDate": "2026-07-10", "status": "awaiting", "note": "Contacted twice (2026-07-09 and 2026-07-10) — no reply either time"}, {"name": "OutlierKit", "email": "hello@outlierkit.com", "subject": "Paid Partnership Inquiry — Sheibani (YouTube Creator, Apple/Tech Niche)", "sentDate": "2026-07-10", "status": "replied", "note": "Aditi (co-founder) replied: affiliate program is the starting point for now (outlierkit.com/p/affiliate), open to paid partnership going forward"}, {"name": "Anker", "email": "affiliate@anker.com", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "UGREEN", "email": "affiliate@ugreen.com", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "TopView", "email": "affiliate@topview.ai", "subject": "Paid Partnership Inquiry — Sheibani (YouTube Creator, Apple/Tech Niche)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""}, {"name": "MagBak", "email": "info@magbak.com", "subject": "iPhone content creator — MagBak feature for Sheibani", "sentDate": "2026-07-09", "status": "replied", "note": "Sent a signup link for a possible collab: collab.magbak.com"}, {"name": "GENTCREATE", "email": "info@gentcreate.com", "subject": "iPhone/Apple content creator — GENTCREATE feature for Sheibani", "sentDate": "2026-07-09", "status": "awaiting", "note": ""}, {"name": "Paperlike", "email": "support@paperlike.com", "subject": "iPad/Apple content creator — Paperlike creator collaboration inquiry", "sentDate": "2026-07-09", "status": "replied", "note": "Forwarded to their partnerships team"}, {"name": "Moment", "email": "hello@shopmoment.com", "subject": "Mobile filmmaking gear feature — Sheibani (iPhone/Apple creator)", "sentDate": "2026-07-09", "status": "declined", "note": "Overwhelmed with requests right now, can't participate"}, {"name": "SANDMARC", "email": "help@sandmarc.com", "subject": "Collab inquiry — iPhone content creator (Sheibani)", "sentDate": "2026-07-09", "status": "awaiting", "note": ""}, {"name": "Aulumu", "email": "market@aulumu.com", "subject": "Social media collaboration — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "replied", "note": "Lynn is actively interested — back-and-forth in progress, the strongest lead right now"}, {"name": "NEEWER", "email": "PR@neewer.com", "subject": "Paid partnership or product feature — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "awaiting", "note": ""}, {"name": "Oakywood", "email": "contact@oakywood.shop", "subject": "Desk setup feature — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "replied", "note": "Asked to fill out a contact form to move forward"}]};
+const OUTREACH = {
+  "draftsPending": 8,
+  "draftsGoal": 100,
+  "backlogCount": 121,
+  "readyDrafts": [
+    {
+      "name": "Nanoleaf",
+      "email": "affiliate@nanoleaf.me",
+      "category": "HomeKit smart lighting",
+      "id": "r-4225644394315123836"
+    },
+    {
+      "name": "Meross",
+      "email": "affiliate@meross.com",
+      "category": "HomeKit smart plug/camera/sensor",
+      "id": "r1824640178073103760"
+    },
+    {
+      "name": "BURGA",
+      "email": "collab@burga.com",
+      "category": "Case",
+      "id": "r-7489170363781270306"
+    },
+    {
+      "name": "Ulanzi",
+      "email": "affiliate@ulanzi.com",
+      "category": "Mobile filmmaking gear (tripods/lights/MagSafe mounts)",
+      "id": "r109358383354843079"
+    },
+    {
+      "name": "PITAKA",
+      "email": "distributor@ipitaka.com",
+      "category": "Aramid-fiber case / MagSafe gear",
+      "id": "r-5232724393353932678"
+    },
+    {
+      "name": "Lume Cube",
+      "email": "press@lumecube.com",
+      "category": "Mobile creator lighting",
+      "id": "r5932068775552239889"
+    },
+    {
+      "name": "Onvis",
+      "email": "sales@onvistech.com",
+      "category": "HomeKit/Matter smart home + Find My",
+      "id": "r-4888057679507918384"
+    },
+    {
+      "name": "Synthesia",
+      "email": "affiliates@synthesia.io",
+      "category": "AI avatar video",
+      "id": "r546463156275249760"
+    }
+  ],
+  "companies": [
+    {
+      "name": "MOFT",
+      "email": "sales@moft.us",
+      "subject": "Paid Partnership Inquiry \u2014 Sheibani (Apple/iPhone YouTube Channel)",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Higgsfield",
+      "email": "press@higgsfield.ai",
+      "subject": "Partnership inquiry \u2014 Sheibani (Apple/tech YouTube, 3.82M views) x Higgsfield",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Sunsama",
+      "email": "kevin@sunsama.com",
+      "subject": "Partnership inquiry \u2014 Sheibani (Apple/tech YouTube, 3.82M views) x Sunsama",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Aqara",
+      "email": "support@aqara.com",
+      "subject": "Paid Partnership Inquiry \u2014 Sheibani (Apple/iPhone Tech YouTube Channel)",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Plaud",
+      "email": "creator@plaud.ai",
+      "subject": "Partnership inquiry \u2014 Sheibani (Apple/tech YouTube, 3.82M views) x Plaud",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": "Contacted twice (2026-07-09 and 2026-07-10) \u2014 no reply either time"
+    },
+    {
+      "name": "OutlierKit",
+      "email": "hello@outlierkit.com",
+      "subject": "Paid Partnership Inquiry \u2014 Sheibani (YouTube Creator, Apple/Tech Niche)",
+      "sentDate": "2026-07-10",
+      "status": "replied",
+      "note": "Aditi (co-founder) replied: affiliate program is the starting point for now (outlierkit.com/p/affiliate), open to paid partnership going forward"
+    },
+    {
+      "name": "Anker",
+      "email": "affiliate@anker.com",
+      "subject": "Paid Partnership Inquiry \u2014 Sheibani (Apple/iPhone YouTube Channel)",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "UGREEN",
+      "email": "affiliate@ugreen.com",
+      "subject": "Paid Partnership Inquiry \u2014 Sheibani (Apple/iPhone YouTube Channel)",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "TopView",
+      "email": "affiliate@topview.ai",
+      "subject": "Paid Partnership Inquiry \u2014 Sheibani (YouTube Creator, Apple/Tech Niche)",
+      "sentDate": "2026-07-10",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "MagBak",
+      "email": "info@magbak.com",
+      "subject": "iPhone content creator \u2014 MagBak feature for Sheibani",
+      "sentDate": "2026-07-09",
+      "status": "replied",
+      "note": "Sent a signup link for a possible collab: collab.magbak.com"
+    },
+    {
+      "name": "GENTCREATE",
+      "email": "info@gentcreate.com",
+      "subject": "iPhone/Apple content creator \u2014 GENTCREATE feature for Sheibani",
+      "sentDate": "2026-07-09",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Paperlike",
+      "email": "support@paperlike.com",
+      "subject": "iPad/Apple content creator \u2014 Paperlike creator collaboration inquiry",
+      "sentDate": "2026-07-09",
+      "status": "replied",
+      "note": "Forwarded to their partnerships team"
+    },
+    {
+      "name": "Moment",
+      "email": "hello@shopmoment.com",
+      "subject": "Mobile filmmaking gear feature \u2014 Sheibani (iPhone/Apple creator)",
+      "sentDate": "2026-07-09",
+      "status": "declined",
+      "note": "Overwhelmed with requests right now, can't participate"
+    },
+    {
+      "name": "SANDMARC",
+      "email": "help@sandmarc.com",
+      "subject": "Collab inquiry \u2014 iPhone content creator (Sheibani)",
+      "sentDate": "2026-07-09",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Aulumu",
+      "email": "market@aulumu.com",
+      "subject": "Social media collaboration \u2014 Sheibani (iPhone/Apple content creator)",
+      "sentDate": "2026-07-09",
+      "status": "replied",
+      "note": "Lynn is actively interested \u2014 back-and-forth in progress, the strongest lead right now"
+    },
+    {
+      "name": "NEEWER",
+      "email": "PR@neewer.com",
+      "subject": "Paid partnership or product feature \u2014 Sheibani (iPhone/Apple content creator)",
+      "sentDate": "2026-07-09",
+      "status": "awaiting",
+      "note": ""
+    },
+    {
+      "name": "Oakywood",
+      "email": "contact@oakywood.shop",
+      "subject": "Desk setup feature \u2014 Sheibani (iPhone/Apple content creator)",
+      "sentDate": "2026-07-09",
+      "status": "replied",
+      "note": "Asked to fill out a contact form to move forward"
+    }
+  ]
+};
 /* OUTREACH_DATA_END */
 
 function esc(s){return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
@@ -727,8 +931,14 @@ if(darylSendBtn){
   darylInputEl.addEventListener('keydown', e=>{ if(e.key==='Enter') darylSend(); });
 }
 
-/* ---------------- Daryl: live Gmail inbox (Google Sign-In, client-side only) ---------------- */
+/* ---------------- Daryl: live Gmail inbox + send (Google Sign-In, client-side only) ---------------- */
 const DARYL_GOOGLE_CLIENT_ID = '428387908126-38dbsnji8u8qo5o3iib80sati5n9tfi9.apps.googleusercontent.com';
+// One combined scope grant covers both features below: reading the 5 most
+// recent inbox messages (Live Inbox tab) and sending an already-written
+// draft exactly as-is (Outreach > Send Pending Drafts). Neither feature can
+// read/write anything beyond what these two scopes allow — no delete, no
+// modify, no access to anything outside Gmail.
+const DARYL_GMAIL_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send';
 let darylGoogleToken = null;
 function darylLoadGsi(cb){
   if(window.google && window.google.accounts && window.google.accounts.oauth2){ cb(); return; }
@@ -736,28 +946,35 @@ function darylLoadGsi(cb){
   s.src = 'https://accounts.google.com/gsi/client';
   s.async = true;
   s.onload = cb;
-  s.onerror = ()=>{ const el = document.getElementById('darylInboxList'); if(el) el.innerHTML = '<div class="empty-note">Could not load Google Sign-In — check your connection and try again.</div>'; };
+  s.onerror = ()=>{ cb(new Error('Could not load Google Sign-In — check your connection and try again.')); };
   document.head.appendChild(s);
+}
+// Shared sign-in helper: reuses an existing token if we already have one this
+// page-load, otherwise runs the Google popup once. Both the Live Inbox button
+// and the Send Pending Drafts button call this instead of duplicating the flow.
+function darylEnsureGoogleToken(onReady, onError){
+  if(darylGoogleToken){ onReady(); return; }
+  darylLoadGsi((loadErr)=>{
+    if(loadErr){ onError(loadErr); return; }
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: DARYL_GOOGLE_CLIENT_ID,
+      scope: DARYL_GMAIL_SCOPES,
+      callback: (resp)=>{
+        if(!resp || resp.error){ onError(new Error((resp && resp.error) || 'unknown sign-in error')); return; }
+        darylGoogleToken = resp.access_token;
+        onReady();
+      }
+    });
+    client.requestAccessToken();
+  });
 }
 const darylSigninBtn = document.getElementById('darylGoogleSignin');
 if(darylSigninBtn){
   darylSigninBtn.addEventListener('click', ()=>{
-    darylLoadGsi(()=>{
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: DARYL_GOOGLE_CLIENT_ID,
-        scope: 'https://www.googleapis.com/auth/gmail.readonly',
-        callback: (resp)=>{
-          if(!resp || resp.error){
-            const el = document.getElementById('darylInboxList');
-            if(el) el.innerHTML = '<div class="empty-note">Sign-in failed: ' + esc((resp && resp.error) || 'unknown error') + '</div>';
-            return;
-          }
-          darylGoogleToken = resp.access_token;
-          darylLoadInbox();
-        }
-      });
-      client.requestAccessToken();
-    });
+    darylEnsureGoogleToken(
+      darylLoadInbox,
+      (err)=>{ const el = document.getElementById('darylInboxList'); if(el) el.innerHTML = '<div class="empty-note">Sign-in failed: ' + esc(err.message) + '</div>'; }
+    );
   });
 }
 async function darylLoadInbox(){
@@ -790,7 +1007,70 @@ async function darylLoadInbox(){
     }).join('');
   }catch(e){
     listEl.innerHTML = '<div class="empty-note">Could not reach Gmail (' + esc(e.message) + ') — try signing in again.</div>';
+    darylGoogleToken = null; // don't keep retrying a dead/expired token silently
   }
+}
+
+/* ---------------- Outreach: Send Pending Drafts (confirm-gated, client-side, real Gmail send) ---------------- */
+const sendDraftsBtn = document.getElementById('sendDraftsBtn');
+const sendDraftsStatusEl = document.getElementById('sendDraftsStatus');
+function sendDraftsSetStatus(html){ if(sendDraftsStatusEl) sendDraftsStatusEl.innerHTML = html; }
+if(sendDraftsBtn){
+  sendDraftsBtn.addEventListener('click', ()=>{
+    darylEnsureGoogleToken(sendPendingDraftsFlow, (err)=>{
+      sendDraftsSetStatus('<span style="color:var(--gold-bright)">Sign-in failed: ' + esc(err.message) + '</span>');
+    });
+  });
+}
+async function sendPendingDraftsFlow(){
+  const drafts = (OUTREACH && OUTREACH.readyDrafts) || [];
+  const withId = drafts.filter(d=>d.id);
+  if(!withId.length){
+    sendDraftsSetStatus('Nothing to send right now — no pending drafts with a known Gmail draft ID.');
+    return;
+  }
+  const names = withId.map(d=>d.name).join(', ');
+  const ok = confirm(`Send ${withId.length} pending draft${withId.length===1?'':'s'} exactly as written?\n\n${names}\n\nThis cannot be undone.`);
+  if(!ok){ sendDraftsSetStatus('Cancelled — nothing was sent.'); return; }
+
+  sendDraftsBtn.disabled = true;
+  const results = [];
+  for(const d of withId){
+    try{
+      const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts/send', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + darylGoogleToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: d.id })
+      });
+      if(res.ok){
+        results.push({ name: d.name, ok: true });
+      }else{
+        const data = await res.json().catch(()=>({}));
+        results.push({ name: d.name, ok: false, error: (data.error && data.error.message) || ('status ' + res.status) });
+      }
+    }catch(e){
+      results.push({ name: d.name, ok: false, error: e.message });
+    }
+  }
+  sendDraftsBtn.disabled = false;
+
+  const sent = results.filter(r=>r.ok);
+  const failed = results.filter(r=>!r.ok);
+
+  // Optimistic client-side cleanup: pull sent items out of the visible
+  // "Ready To Send" list and pending count right now, so the page doesn't
+  // look stale until tomorrow's automated run re-syncs the real numbers.
+  if(sent.length){
+    const sentNames = new Set(sent.map(r=>r.name));
+    OUTREACH.readyDrafts = (OUTREACH.readyDrafts||[]).filter(d=>!sentNames.has(d.name));
+    OUTREACH.draftsPending = Math.max(0, (OUTREACH.draftsPending||0) - sent.length);
+    paintOutreach();
+  }
+
+  let msg = '';
+  if(sent.length) msg += `<span style="color:var(--gold-bright)">Sent: ${esc(sent.map(r=>r.name).join(', '))}</span>`;
+  if(failed.length) msg += (msg?'<br>':'') + `<span style="color:#e08a8a">Failed: ${esc(failed.map(r=>r.name+' ('+r.error+')').join(', '))}</span>`;
+  sendDraftsSetStatus(msg || 'Nothing sent.');
 }
 
 /* ---------------- intel / news legend ---------------- */
@@ -917,6 +1197,15 @@ function clockLoadState(){
 }
 function updateClockDefaultTop(){
   if(clockPinned) return;
+  if(window.innerWidth <= 640){
+    // Below this width the stylesheet anchors the clock to the bottom-right
+    // corner instead (small footprint, time-only). Don't fight that with an
+    // inline top here — setting both top and bottom on a fixed element with
+    // auto height is undefined/inconsistent across browsers and was the root
+    // cause of the widget landing in unpredictable places on phones.
+    clockEl.style.top = '';
+    return;
+  }
   const tb = document.getElementById('tabbar').getBoundingClientRect();
   const naturalTop = 78;
   clockEl.style.top = (tb.top <= 1 && tb.bottom > naturalTop) ? (tb.bottom+14)+'px' : naturalTop+'px';
