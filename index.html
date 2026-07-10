@@ -184,6 +184,12 @@ main{position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:52px
 .status-sub{display:block; font-family:var(--mono); font-size:11px; color:var(--dim); margin-top:6px;}
 .status-note{font-size:14px; line-height:1.65; color:var(--text); opacity:.85; margin-top:12px; max-width:640px;}
 
+.goal-bar{margin-top:14px;}
+.goal-bar-track{height:6px; background:rgba(255,255,255,.07); border:1px solid var(--line); overflow:hidden;}
+html[data-theme="light"] .goal-bar-track{background:rgba(0,0,0,.06);}
+.goal-bar-fill{height:100%; background:linear-gradient(90deg, var(--gold), var(--ice)); transition:width .6s ease;}
+.mail-list-heading{font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.12em; color:var(--ice); margin:0 0 4px;}
+
 .sub-tabs{display:flex; gap:8px; margin:-8px 0 28px;}
 .sub-tab-btn{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); background:transparent; border:1px solid var(--line); padding:7px 16px; cursor:pointer; transition:color .25s, border-color .25s;}
 .sub-tab-btn:hover{color:var(--text); border-color:var(--gold);}
@@ -370,11 +376,25 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
           <span class="status-value" id="outreachSentCount">—</span>
           <span class="status-sub">real outreach emails sent so far</span>
         </div>
+        <div class="status-card">
+          <span class="status-label">Batch Goal</span>
+          <span class="status-value" id="outreachGoalValue">—</span>
+          <span class="status-sub" id="outreachGoalSub">drafts saved toward your send-batch threshold</span>
+          <div class="goal-bar"><div class="goal-bar-track"><div class="goal-bar-fill" id="outreachGoalFill" style="width:0%"></div></div></div>
+        </div>
+        <div class="status-card">
+          <span class="status-label">Untapped Candidates</span>
+          <span class="status-value" id="outreachBacklogCount">—</span>
+          <span class="status-sub">verified targets on file, not yet contacted</span>
+        </div>
         <div class="status-card wide">
           <span class="status-label">How This Works</span>
-          <p class="status-note">Every morning at 0900 the automation researches new sponsor leads and drafts real Gmail outreach for anyone with a direct email on file. This is a synced snapshot of that activity, not a live inbox feed — see System tab.</p>
+          <p class="status-note">Every morning at 0900 the automation researches new sponsor leads and drafts real Gmail outreach for anyone with a direct email on file — it drafts only, it never sends on its own. This is a synced snapshot of that activity, not a live inbox feed — see System tab.</p>
         </div>
       </div>
+      <div class="mail-list-heading">Ready To Send</div>
+      <div class="mail-list" id="outreachReadyList"></div>
+      <div class="mail-list-heading" style="margin-top:28px;">Sent History</div>
       <div class="mail-list" id="outreachDraftsList"></div>
     </div>
     <div class="sub-panel" data-sub-panel="replies">
@@ -409,7 +429,7 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
     <div class="status-grid">
       <div class="status-card">
         <span class="status-label">Last Sync</span>
-        <span class="status-value">July 10, 2026</span>
+        <span class="status-value">2026-07-10</span>
       </div>
       <div class="status-card">
         <span class="status-label">Last Batch — Outreach Drafts</span>
@@ -500,7 +520,15 @@ const NEWS = [{"name":"Cupertino, CA","lat":37.323,"lon":-122.032,"headline":"iP
 /* NEWS_DATA_END */
 /* OUTREACH_DATA_START */
 const OUTREACH = {
-  "draftsPending": 0,
+  "draftsPending": 4,
+  "draftsGoal": 50,
+  "backlogCount": 118,
+  "readyDrafts": [
+    {"name": "Nanoleaf", "email": "affiliate@nanoleaf.me", "category": "HomeKit smart lighting"},
+    {"name": "Meross", "email": "affiliate@meross.com", "category": "HomeKit smart plug/camera/sensor"},
+    {"name": "BURGA", "email": "collab@burga.com", "category": "Case"},
+    {"name": "Ulanzi", "email": "affiliate@ulanzi.com", "category": "Mobile filmmaking gear (tripods/lights/MagSafe mounts)"}
+  ],
   "companies": [
     {"name": "MOFT", "email": "sales@moft.us", "subject": "Paid Partnership Inquiry — Sheibani (Apple/iPhone YouTube Channel)", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
     {"name": "Higgsfield", "email": "press@higgsfield.ai", "subject": "Partnership inquiry — Sheibani (Apple/tech YouTube, 3.82M views) x Higgsfield", "sentDate": "2026-07-10", "status": "awaiting", "note": ""},
@@ -520,8 +548,7 @@ const OUTREACH = {
     {"name": "NEEWER", "email": "PR@neewer.com", "subject": "Paid partnership or product feature — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "awaiting", "note": ""},
     {"name": "Oakywood", "email": "contact@oakywood.shop", "subject": "Desk setup feature — Sheibani (iPhone/Apple content creator)", "sentDate": "2026-07-09", "status": "replied", "note": "Asked to fill out a contact form to move forward"}
   ]
-}
-;
+};
 /* OUTREACH_DATA_END */
 
 function esc(s){return String(s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
@@ -614,15 +641,45 @@ function mailItemHTML(c){
     ${statusBadge(c.status)}
   </div>`;
 }
+function readyItemHTML(c){
+  return `<div class="mail-item">
+    <div class="mail-item-main">
+      <div class="mi-name">${esc(c.name)}</div>
+      <div class="mi-sub">${esc(c.category||'')}</div>
+      <div class="mi-meta">${esc(c.email)}</div>
+    </div>
+    <span class="reply-badge awaiting">Draft</span>
+  </div>`;
+}
 function paintOutreach(){
   const list = (OUTREACH && OUTREACH.companies) || [];
   const sentTotal = list.length;
   const repliedTotal = list.filter(c=>c.status==='replied'||c.status==='declined').length;
 
+  const pending = (OUTREACH && OUTREACH.draftsPending) || 0;
   const draftsCountEl = document.getElementById('outreachDraftsCount');
-  if(draftsCountEl) draftsCountEl.textContent = (OUTREACH && OUTREACH.draftsPending) || 0;
+  if(draftsCountEl) draftsCountEl.textContent = pending;
   const sentCountEl = document.getElementById('outreachSentCount');
   if(sentCountEl) sentCountEl.textContent = sentTotal;
+
+  const goal = (OUTREACH && OUTREACH.draftsGoal) || 50;
+  const goalValueEl = document.getElementById('outreachGoalValue');
+  if(goalValueEl) goalValueEl.textContent = pending + ' / ' + goal;
+  const goalFillEl = document.getElementById('outreachGoalFill');
+  if(goalFillEl) goalFillEl.style.width = Math.max(0, Math.min(100, Math.round(pending/goal*100))) + '%';
+  const goalSubEl = document.getElementById('outreachGoalSub');
+  if(goalSubEl) goalSubEl.textContent = pending >= goal
+    ? "Threshold reached — full batch ready for you to review and send"
+    : `${Math.max(0, goal-pending)} more drafts until your batch-send threshold`;
+
+  const backlogEl = document.getElementById('outreachBacklogCount');
+  if(backlogEl) backlogEl.textContent = (OUTREACH && typeof OUTREACH.backlogCount === 'number') ? OUTREACH.backlogCount : '—';
+
+  const readyEl = document.getElementById('outreachReadyList');
+  if(readyEl){
+    const ready = (OUTREACH && OUTREACH.readyDrafts) || [];
+    readyEl.innerHTML = ready.length ? ready.map(readyItemHTML).join('') : '<div class="empty-note">No drafts waiting right now — check back after the next 0900 run.</div>';
+  }
 
   const draftsListEl = document.getElementById('outreachDraftsList');
   if(draftsListEl){
