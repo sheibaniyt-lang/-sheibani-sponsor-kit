@@ -203,6 +203,18 @@ main{position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:52px
 .reply-badge.replied{color:var(--good); border-color:var(--good);}
 .reply-badge.declined{color:var(--warn); border-color:var(--warn); opacity:.85;}
 
+.daryl-chat{display:flex; flex-direction:column; padding:22px; max-width:680px;}
+.daryl-messages{display:flex; flex-direction:column; gap:12px; max-height:440px; overflow-y:auto; padding-right:4px; margin-bottom:16px;}
+.daryl-msg{padding:11px 15px; font-size:13.5px; line-height:1.55; max-width:85%; word-wrap:break-word;}
+.daryl-msg-bot{align-self:flex-start; background:rgba(111,227,255,.08); border:1px solid rgba(111,227,255,.28); color:var(--text);}
+.daryl-msg-user{align-self:flex-end; background:rgba(201,169,89,.14); border:1px solid var(--line-bright);}
+.daryl-msg-error{align-self:flex-start; background:rgba(232,205,138,.07); border:1px solid var(--warn); color:var(--warn); font-family:var(--mono); font-size:11.5px;}
+.daryl-input-row{display:flex; gap:10px;}
+.daryl-input-row input{flex:1; background:transparent; border:1px solid var(--line); color:var(--text); padding:11px 14px; font-family:var(--body); font-size:13.5px;}
+.daryl-input-row input:focus{outline:none; border-color:var(--gold);}
+.daryl-input-row button{flex:0 0 auto; padding:11px 22px;}
+.daryl-status{font-family:var(--mono); font-size:10.5px; color:var(--dim); margin-top:10px; min-height:14px;}
+
 .footer{position:relative; z-index:2; text-align:center; color:var(--dim); font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; padding:50px 20px 70px; line-height:1.8;}
 .footer a{color:var(--dim);}
 
@@ -318,6 +330,7 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
       <button class="tab-btn" data-tab="outreach">Outreach</button>
       <button class="tab-btn" data-tab="contact">Contact</button>
       <button class="tab-btn" data-tab="status">System</button>
+      <button class="tab-btn" data-tab="daryl">Daryl</button>
       <button class="theme-toggle" id="themeToggle">☾ / ☀</button>
     </div>
   </div>
@@ -424,6 +437,38 @@ html[data-theme="light"] .intel-dot{box-shadow:0 0 5px var(--ice);}
         <span class="status-label">About The Access Screen</span>
         <p class="status-note">The boot sequence on load is a themed entrance, not real security — this page has no accounts and no login system behind it, so anyone with the link can still open it directly. Treat it as atmosphere, not a lock.</p>
       </div>
+    </div>
+  </section>
+
+  <section class="panel" data-panel="daryl" id="panel-daryl">
+    <div class="panel-head"><span class="kicker">VII.</span><h2 data-decrypt="Daryl">Daryl</h2></div>
+    <div class="sub-tabs">
+      <button class="sub-tab-btn active" data-sub="chat">Chat</button>
+      <button class="sub-tab-btn" data-sub="inbox">Live Inbox</button>
+    </div>
+
+    <div class="sub-panel active" data-sub-panel="chat">
+      <div class="daryl-chat glass">
+        <div class="daryl-messages" id="darylMessages">
+          <div class="daryl-msg daryl-msg-bot">Daryl — standing by. Heads up: this box is a lightweight chat surface, not my full Claude session — no email, files, or scheduled tasks from here, just conversation.</div>
+        </div>
+        <div class="daryl-input-row">
+          <input type="text" id="darylInput" placeholder="Message Daryl…" autocomplete="off" maxlength="2000">
+          <button id="darylSend">Send</button>
+        </div>
+        <div class="daryl-status" id="darylStatus"></div>
+      </div>
+    </div>
+
+    <div class="sub-panel" data-sub-panel="inbox">
+      <div class="status-grid" style="margin-bottom:24px;">
+        <div class="status-card wide">
+          <span class="status-label">Live Gmail</span>
+          <p class="status-note">Sign in with the SheibaniYT@gmail.com Google account to see the 5 most recent messages, fetched live in your browser when you click the button — nothing is sent to or stored on this site.</p>
+          <button class="copy-btn" id="darylGoogleSignin" style="margin-top:14px; max-width:220px;">Sign in with Google</button>
+        </div>
+      </div>
+      <div class="mail-list" id="darylInboxList"></div>
     </div>
   </section>
 </main>
@@ -597,6 +642,116 @@ document.querySelectorAll('.sub-tab-btn').forEach(btn=>{
     wrap.querySelector(`.sub-panel[data-sub-panel="${btn.dataset.sub}"]`).classList.add('active');
   });
 });
+
+/* ---------------- Daryl: chat relay ---------------- */
+const DARYL_ENDPOINT = '/api/daryl-chat';
+let darylHistory = [];
+function darylAddMsg(role, text){
+  const el = document.getElementById('darylMessages');
+  if(!el) return;
+  const div = document.createElement('div');
+  div.className = 'daryl-msg daryl-msg-' + role;
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+}
+async function darylSend(){
+  const input = document.getElementById('darylInput');
+  const statusEl = document.getElementById('darylStatus');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  darylAddMsg('user', text);
+  statusEl.textContent = 'Daryl is thinking…';
+  try{
+    const res = await fetch(DARYL_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ message: text, history: darylHistory.slice(-10) })
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.error) throw new Error(data.error || ('status ' + res.status));
+    darylHistory.push({role:'user', content:text});
+    darylHistory.push({role:'assistant', content:data.reply});
+    darylAddMsg('bot', data.reply);
+    statusEl.textContent = '';
+  }catch(e){
+    darylAddMsg('error', "Daryl's backend isn't connected on this device yet — the chat relay still needs to be deployed. (" + e.message + ")");
+    statusEl.textContent = '';
+  }
+}
+const darylSendBtn = document.getElementById('darylSend');
+const darylInputEl = document.getElementById('darylInput');
+if(darylSendBtn){
+  darylSendBtn.addEventListener('click', darylSend);
+  darylInputEl.addEventListener('keydown', e=>{ if(e.key==='Enter') darylSend(); });
+}
+
+/* ---------------- Daryl: live Gmail inbox (Google Sign-In, client-side only) ---------------- */
+const DARYL_GOOGLE_CLIENT_ID = '428387908126-38dbsnji8u8qo5o3iib80sati5n9tfi9.apps.googleusercontent.com';
+let darylGoogleToken = null;
+function darylLoadGsi(cb){
+  if(window.google && window.google.accounts && window.google.accounts.oauth2){ cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  s.onload = cb;
+  s.onerror = ()=>{ const el = document.getElementById('darylInboxList'); if(el) el.innerHTML = '<div class="empty-note">Could not load Google Sign-In — check your connection and try again.</div>'; };
+  document.head.appendChild(s);
+}
+const darylSigninBtn = document.getElementById('darylGoogleSignin');
+if(darylSigninBtn){
+  darylSigninBtn.addEventListener('click', ()=>{
+    darylLoadGsi(()=>{
+      const client = google.accounts.oauth2.initTokenClient({
+        client_id: DARYL_GOOGLE_CLIENT_ID,
+        scope: 'https://www.googleapis.com/auth/gmail.readonly',
+        callback: (resp)=>{
+          if(!resp || resp.error){
+            const el = document.getElementById('darylInboxList');
+            if(el) el.innerHTML = '<div class="empty-note">Sign-in failed: ' + esc((resp && resp.error) || 'unknown error') + '</div>';
+            return;
+          }
+          darylGoogleToken = resp.access_token;
+          darylLoadInbox();
+        }
+      });
+      client.requestAccessToken();
+    });
+  });
+}
+async function darylLoadInbox(){
+  const listEl = document.getElementById('darylInboxList');
+  if(!listEl) return;
+  listEl.innerHTML = '<div class="empty-note">Loading…</div>';
+  try{
+    const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5&q=in:inbox', {
+      headers: { Authorization: 'Bearer ' + darylGoogleToken }
+    });
+    const listData = await listRes.json();
+    if(!listRes.ok) throw new Error((listData.error && listData.error.message) || ('status ' + listRes.status));
+    if(!listData.messages || !listData.messages.length){
+      listEl.innerHTML = '<div class="empty-note">Inbox is empty right now.</div>';
+      return;
+    }
+    const details = await Promise.all(listData.messages.map(m=>
+      fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`,
+        { headers: { Authorization: 'Bearer ' + darylGoogleToken } }).then(r=>r.json())
+    ));
+    listEl.innerHTML = details.map(d=>{
+      const headers = (d.payload && d.payload.headers) || [];
+      const subject = (headers.find(h=>h.name==='Subject')||{}).value || '(no subject)';
+      const from = (headers.find(h=>h.name==='From')||{}).value || '';
+      return `<div class="mail-item"><div class="mail-item-main">
+        <div class="mi-name">${esc(subject)}</div>
+        <div class="mi-meta">${esc(from)}</div>
+        <div class="mi-note">${esc(d.snippet||'')}</div>
+      </div></div>`;
+    }).join('');
+  }catch(e){
+    listEl.innerHTML = '<div class="empty-note">Could not reach Gmail (' + esc(e.message) + ') — try signing in again.</div>';
+  }
+}
 
 /* ---------------- intel / news legend ---------------- */
 const intelList = document.getElementById('intelList');
