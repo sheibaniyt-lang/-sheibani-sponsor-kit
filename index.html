@@ -1162,6 +1162,14 @@ function clockPin(){
   clockEl.style.left = r.left+'px';
   clockEl.style.top = r.top+'px';
   clockEl.style.right = 'auto';
+  // Once pinned, top+left are the only source of truth for position, on
+  // every viewport width. The mobile stylesheet also sets `bottom` (for the
+  // unpinned default state) — if that's left in effect alongside an inline
+  // `top`, the browser treats height as "fill the gap between top and
+  // bottom" instead of hugging the content, which is what was stretching
+  // the widget into a tall blank box on phones. Explicitly killing bottom
+  // here removes that conflict for good, regardless of screen width.
+  clockEl.style.bottom = 'auto';
   clockEl.style.transformOrigin = 'top left';
   clockPinned = true;
 }
@@ -1187,6 +1195,7 @@ function clockLoadState(){
     const s = JSON.parse(localStorage.getItem(CLOCK_STORE_KEY)||'null');
     if(s && s.left && s.top){
       clockEl.style.left = s.left; clockEl.style.top = s.top; clockEl.style.right = 'auto';
+      clockEl.style.bottom = 'auto'; // see clockPin() for why this matters on phones
       clockEl.style.transformOrigin = 'top left';
       clockPinned = true;
       clockApplyScale(s.scale || 1);
@@ -1245,7 +1254,7 @@ clockEl.addEventListener('dblclick', e=>{
   if(e.target===clockGrip || clockGrip.contains(e.target)) return;
   try{ localStorage.removeItem(CLOCK_STORE_KEY); }catch(e){}
   clockPinned = false;
-  clockEl.style.left=''; clockEl.style.top=''; clockEl.style.right=''; clockEl.style.transformOrigin='';
+  clockEl.style.left=''; clockEl.style.top=''; clockEl.style.right=''; clockEl.style.bottom=''; clockEl.style.transformOrigin='';
   clockApplyScale(1);
   updateClockDefaultTop();
   showToast('WIDGET RESET');
